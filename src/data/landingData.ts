@@ -1,25 +1,45 @@
-import { Mic, BarChart3, Shield, Eye, Store, GraduationCap, HeartPulse, Building2, Upload, Search, FileText } from "lucide-react";
+import { Mic, BarChart3, Shield, Eye, Store, GraduationCap, HeartPulse, Building2, Upload, Search, FileText, Zap, Lock, TrendingUp } from "lucide-react";
 
+// Zig-zag feature rows (alternating image/text layout)
 export const features = [
   {
-    icon: Mic,
-    title: "Voice Capture",
-    description: "Automatically record and transcribe in-person interactions with crystal-clear accuracy.",
+    title: "Intelligent Voice Capture",
+    description: "VOIX passively captures every in-person interaction with military-grade audio processing. Our proprietary AI filters background noise, identifies speakers, and delivers crystal-clear transcriptions in real time — no manual input required.",
+    imageLabel: "Voice Capture Dashboard",
   },
   {
-    icon: BarChart3,
-    title: "Performance Auditing",
-    description: "Score and benchmark employee performance with objective, data-driven insights.",
+    title: "Automated Performance Auditing",
+    description: "Go beyond subjective reviews. VOIX scores every interaction against your custom benchmarks — tracking compliance, sentiment, talk ratios, and key phrase usage. Managers get objective, data-backed performance reports delivered automatically.",
+    imageLabel: "Audit Analytics View",
   },
   {
-    icon: Shield,
-    title: "Unbiased Insights",
-    description: "Remove subjectivity from evaluations with AI-powered sentiment and compliance analysis.",
+    title: "Actionable Intelligence at Scale",
+    description: "Surface trends across thousands of interactions instantly. VOIX's analytics engine identifies coaching opportunities, compliance risks, and top-performer patterns — turning raw voice data into strategic business decisions.",
+    imageLabel: "Intelligence Overview",
   },
   {
-    icon: Eye,
-    title: "Real-Time Monitoring",
-    description: "Track live interactions and receive instant alerts on key events and compliance triggers.",
+    title: "Real-Time Monitoring & Alerts",
+    description: "Stay informed the moment it matters. Configure custom triggers for compliance keywords, escalation signals, or sentiment shifts — and receive instant notifications so your team can act before issues grow.",
+    imageLabel: "Live Monitoring Panel",
+  },
+];
+
+// "Why VOIX" — 3 minimalist value-prop cards
+export const whyVoix = [
+  {
+    icon: Zap,
+    title: "Lightning Fast",
+    description: "Deploy in minutes, not months. VOIX integrates seamlessly with your existing infrastructure.",
+  },
+  {
+    icon: Lock,
+    title: "Enterprise Secure",
+    description: "SOC 2 compliant with end-to-end encryption. Your data never leaves your control.",
+  },
+  {
+    icon: TrendingUp,
+    title: "Proven ROI",
+    description: "Customers see a 40% improvement in compliance scores within the first 90 days.",
   },
 ];
 
@@ -49,21 +69,19 @@ export const useCases = [
     icon: Store,
     title: "Retail",
     description: "Monitor in-store customer interactions to improve sales conversion and service quality.",
+    imageLabel: "Retail Environment",
   },
   {
     icon: HeartPulse,
     title: "Healthcare",
     description: "Ensure patient-provider communication meets compliance and quality standards.",
+    imageLabel: "Healthcare Setting",
   },
   {
     icon: GraduationCap,
     title: "Education",
     description: "Evaluate teaching quality and student engagement through objective voice analysis.",
-  },
-  {
-    icon: Building2,
-    title: "Financial Services",
-    description: "Audit advisory conversations for regulatory compliance and client satisfaction.",
+    imageLabel: "Education Campus",
   },
 ];
 

@@ -1,5 +1,5 @@
 import { useCases } from "@/data/landingData";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 const UseCases = () => {
   return (
@@ -8,20 +8,25 @@ const UseCases = () => {
         <h2 className="text-3xl md:text-4xl font-bold text-primary text-center">
           Use Cases
         </h2>
-        <p className="mt-4 text-muted-foreground text-center max-w-2xl mx-auto">
+        <p className="mt-4 text-muted-foreground text-center max-w-2xl mx-auto mb-12">
           VOIX adapts to any industry where voice interactions matter.
         </p>
 
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {useCases.map((uc) => (
-            <Card key={uc.title} className="border-0 shadow-md hover:shadow-lg transition-shadow">
-              <CardContent className="pt-6 flex flex-col items-center text-center">
-                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <uc.icon className="h-6 w-6 text-primary" />
+            <Card key={uc.title} className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow">
+              {/* Banner image placeholder */}
+              <div className="aspect-[16/9] bg-muted flex items-center justify-center">
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <uc.icon className="h-8 w-8 text-secondary" />
+                  <span className="text-xs font-medium">{uc.imageLabel}</span>
                 </div>
+              </div>
+              {/* Text content */}
+              <div className="p-5">
                 <h3 className="text-lg font-semibold text-primary">{uc.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{uc.description}</p>
-              </CardContent>
+                <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">{uc.description}</p>
+              </div>
             </Card>
           ))}
         </div>
