@@ -43,7 +43,7 @@ export function useUpsertFeature() {
             })
             .eq("id", feature.id)
             .select()
-            .single()
+            .maybeSingle()
         : await supabase
             .from("product_features")
             .insert({
@@ -53,7 +53,7 @@ export function useUpsertFeature() {
               order_index: feature.order_index ?? 0,
             })
             .select()
-            .single();
+            .maybeSingle();
       if (error) throw error;
       return data;
     },
