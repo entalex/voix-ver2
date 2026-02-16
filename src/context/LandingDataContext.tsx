@@ -16,7 +16,7 @@ export interface FeatureItem {
   title: string;
   description: string;
   imageLabel: string;
-  // TODO: Add `imageUrl` field here when connecting to Supabase storage for image uploads
+  imageUrl?: string; // Local blob URL for now; TODO: Replace with Supabase Storage URL
 }
 
 export interface TeamMember {
