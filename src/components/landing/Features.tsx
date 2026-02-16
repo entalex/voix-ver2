@@ -1,7 +1,9 @@
-import { features } from "@/data/landingData";
 import { Mic } from "lucide-react";
+import { useLandingData } from "@/context/LandingDataContext";
 
 const Features = () => {
+  const { features } = useLandingData();
+
   return (
     <section id="features" className="py-16 md:py-24 bg-background">
       <div className="container mx-auto px-4">
@@ -17,10 +19,10 @@ const Features = () => {
             const isEven = index % 2 === 0;
             return (
               <div
-                key={feature.title}
+                key={index}
                 className={`flex flex-col ${isEven ? "md:flex-row" : "md:flex-row-reverse"} items-center gap-8 md:gap-12`}
               >
-                {/* Image placeholder */}
+                {/* TODO: Replace placeholder with feature.imageUrl from Supabase Storage */}
                 <div className="w-full md:w-1/2">
                   <div className="aspect-[4/3] rounded-2xl bg-muted border-2 border-dashed border-primary/15 flex items-center justify-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -30,7 +32,6 @@ const Features = () => {
                   </div>
                 </div>
 
-                {/* Text */}
                 <div className="w-full md:w-1/2">
                   <h3 className="text-2xl font-bold text-primary">{feature.title}</h3>
                   <p className="mt-3 text-muted-foreground leading-relaxed">{feature.description}</p>
