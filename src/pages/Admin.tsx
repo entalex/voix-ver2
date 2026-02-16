@@ -14,10 +14,9 @@ import { useNavigate } from "react-router-dom";
 const HeroEditor = () => {
   const { hero, setHero } = useLandingData();
   const { toast } = useToast();
-  const [draft, setDraft] = useState<HeroData>({ ...hero });
+  const [draft, setDraft] = useState<HeroData>(() => ({ ...hero }));
 
   const save = () => {
-    // TODO: Replace with Supabase upsert: supabase.from('landing_config').upsert({ key: 'hero', value: draft })
     setHero(draft);
     toast({ title: "Hero section updated!" });
   };
@@ -28,15 +27,15 @@ const HeroEditor = () => {
       <CardContent className="space-y-4">
         <div>
           <Label>Headline</Label>
-          <Input value={draft.headline} onChange={(e) => setDraft({ ...draft, headline: e.target.value })} maxLength={120} className="mt-1" />
+          <Input value={draft.headline} onChange={(e) => setDraft((prev) => ({ ...prev, headline: e.target.value }))} maxLength={120} className="mt-1" />
         </div>
         <div>
           <Label>Subheadline</Label>
-          <Textarea value={draft.subheadline} onChange={(e) => setDraft({ ...draft, subheadline: e.target.value })} maxLength={300} rows={3} className="mt-1" />
+          <Textarea value={draft.subheadline} onChange={(e) => setDraft((prev) => ({ ...prev, subheadline: e.target.value }))} maxLength={300} rows={3} className="mt-1" />
         </div>
         <div>
           <Label>Button Text</Label>
-          <Input value={draft.buttonText} onChange={(e) => setDraft({ ...draft, buttonText: e.target.value })} maxLength={40} className="mt-1" />
+          <Input value={draft.buttonText} onChange={(e) => setDraft((prev) => ({ ...prev, buttonText: e.target.value }))} maxLength={40} className="mt-1" />
         </div>
         {/* TODO: Add image upload input here — connect to Supabase Storage bucket */}
         <Button onClick={save} className="bg-secondary text-secondary-foreground hover:bg-secondary/90">Save Hero</Button>
@@ -56,8 +55,9 @@ const FeaturesEditor = () => {
 
   const update = (index: number, field: keyof FeatureItem, value: string) => {
     setDraft((prev) => {
-      const next = [...prev];
-      next[index] = { ...next[index], [field]: value };
+      const next = prev.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      );
       return next;
     });
   };
@@ -65,11 +65,8 @@ const FeaturesEditor = () => {
   const handleImageUpload = (index: number, file: File) => {
     // TODO: Replace with Supabase Storage upload: supabase.storage.from('features').upload(...)
     const localUrl = URL.createObjectURL(file);
-    setDraft((prev) => {
-      const next = [...prev];
-      next[index] = { ...next[index], imageUrl: localUrl, imageLabel: file.name };
-      return next;
-    });
+    update(index, "imageUrl", localUrl);
+    update(index, "imageLabel", file.name);
   };
 
   const addFeature = () => {
@@ -82,7 +79,7 @@ const FeaturesEditor = () => {
 
   const save = () => {
     // TODO: Replace with Supabase batch upsert to 'features' table
-    setFeatures(draft);
+    setFeatures([...draft]);
     toast({ title: "Features updated!" });
   };
 
@@ -94,22 +91,38 @@ const FeaturesEditor = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {draft.map((feature, i) => (
-          <div key={`feature-${i}-${draft.length}`} className="p-4 border rounded-lg space-y-3 relative">
+          <div key={i} className="p-4 border rounded-lg space-y-3 relative">
             <button type="button" onClick={() => removeFeature(i)} className="absolute top-3 right-3 text-destructive hover:text-destructive/80">
               <Trash2 className="h-4 w-4" />
             </button>
             <span className="text-xs font-medium text-muted-foreground">Feature {i + 1}</span>
             <div>
               <Label>Title</Label>
-              <Input value={feature.title} onChange={(e) => update(i, "title", e.target.value)} maxLength={80} className="mt-1" />
+              <Input
+                value={feature.title}
+                onChange={(e) => update(i, "title", e.target.value)}
+                maxLength={80}
+                className="mt-1"
+              />
             </div>
             <div>
               <Label>Description</Label>
-              <Textarea value={feature.description} onChange={(e) => update(i, "description", e.target.value)} maxLength={500} rows={3} className="mt-1" />
+              <Textarea
+                value={feature.description}
+                onChange={(e) => update(i, "description", e.target.value)}
+                maxLength={500}
+                rows={3}
+                className="mt-1"
+              />
             </div>
             <div>
               <Label>Image Label</Label>
-              <Input value={feature.imageLabel} onChange={(e) => update(i, "imageLabel", e.target.value)} maxLength={60} className="mt-1" />
+              <Input
+                value={feature.imageLabel}
+                onChange={(e) => update(i, "imageLabel", e.target.value)}
+                maxLength={60}
+                className="mt-1"
+              />
             </div>
             {/* Image upload — uses local blob URL for now; TODO: connect to Supabase Storage */}
             <div>
@@ -155,11 +168,9 @@ const TeamEditor = () => {
   );
 
   const update = (index: number, field: keyof TeamMember, value: string) => {
-    setDraft((prev) => {
-      const next = [...prev];
-      next[index] = { ...next[index], [field]: value };
-      return next;
-    });
+    setDraft((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+    );
   };
 
   const addMember = () => {
@@ -172,8 +183,7 @@ const TeamEditor = () => {
 
   const save = () => {
     // TODO: Replace with Supabase batch upsert to 'team_members' table
-    // TODO: Include photo upload to Supabase Storage bucket
-    setTeamMembers(draft);
+    setTeamMembers([...draft]);
     toast({ title: "Team updated!" });
   };
 
@@ -185,7 +195,7 @@ const TeamEditor = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {draft.map((member, i) => (
-          <div key={`member-${i}-${draft.length}`} className="p-4 border rounded-lg space-y-3 relative">
+          <div key={i} className="p-4 border rounded-lg space-y-3 relative">
             <button type="button" onClick={() => removeMember(i)} className="absolute top-3 right-3 text-destructive hover:text-destructive/80">
               <Trash2 className="h-4 w-4" />
             </button>
