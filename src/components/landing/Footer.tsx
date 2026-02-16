@@ -1,12 +1,26 @@
+const footerLinks = [
+  { label: "Features", href: "#features" },
+  { label: "How It Works", href: "#how-it-works" },
+  { label: "Use Cases", href: "#use-cases" },
+  { label: "Team", href: "#team" },
+  { label: "Contact", href: "#contact" },
+];
+
 const Footer = () => {
   return (
-    <footer className="py-8 bg-primary/95 border-t border-primary/80">
-      <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
-        <span className="text-lg font-bold text-primary-foreground tracking-tight">VOIX</span>
-        <div className="flex gap-6">
-          <a href="#" className="text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors">Privacy</a>
-          <a href="#" className="text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors">Terms</a>
-          <a href="#" className="text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors">Contact</a>
+    <footer className="py-10 bg-primary">
+      <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6">
+        <span className="text-xl font-bold text-primary-foreground tracking-tight">VOIX</span>
+        <div className="flex flex-wrap justify-center gap-6">
+          {footerLinks.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+            >
+              {link.label}
+            </a>
+          ))}
         </div>
         <span className="text-sm text-primary-foreground/50">© 2026 VOIX. All rights reserved.</span>
       </div>
