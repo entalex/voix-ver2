@@ -22,17 +22,26 @@ const Features = () => {
                 key={index}
                 className={`flex flex-col ${isEven ? "md:flex-row" : "md:flex-row-reverse"} items-center gap-8 md:gap-12`}
               >
-                {/* TODO: Replace placeholder with feature.imageUrl from Supabase Storage */}
-                <div className="w-full md:w-1/2">
-                  <div className="aspect-[4/3] rounded-2xl bg-muted border-2 border-dashed border-primary/15 flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                      <Mic className="h-8 w-8 text-secondary" />
-                      <span className="text-xs font-medium">{feature.imageLabel}</span>
+                {/* Image container — strict 50% width, max-height 400px */}
+                <div className="w-full md:w-1/2 md:flex-shrink-0">
+                  {feature.imageUrl ? (
+                    <img
+                      src={feature.imageUrl}
+                      alt={feature.imageLabel}
+                      className="w-full max-h-[400px] object-cover rounded-2xl"
+                    />
+                  ) : (
+                    <div className="w-full max-h-[400px] aspect-[4/3] rounded-2xl bg-muted border-2 border-dashed border-primary/15 flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                        <Mic className="h-8 w-8 text-secondary" />
+                        <span className="text-xs font-medium">{feature.imageLabel}</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
-                <div className="w-full md:w-1/2">
+                {/* Text container — strict 50% width, vertically centered */}
+                <div className="w-full md:w-1/2 md:flex-shrink-0 flex flex-col justify-center">
                   <h3 className="text-2xl font-bold text-primary">{feature.title}</h3>
                   <p className="mt-3 text-muted-foreground leading-relaxed">{feature.description}</p>
                 </div>
