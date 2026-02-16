@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { ArrowLeft, Plus, Trash2, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import FeaturesEditor from "@/components/admin/FeaturesEditor";
 
@@ -103,6 +104,12 @@ const TeamEditor = () => {
 // --- Admin Page ---
 const Admin = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -110,7 +117,10 @@ const Admin = () => {
         <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="text-primary-foreground hover:bg-primary-foreground/10">
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-xl font-bold">VOIX Admin Dashboard</h1>
+        <h1 className="text-xl font-bold flex-1">VOIX Admin Dashboard</h1>
+        <Button variant="ghost" size="sm" onClick={handleLogout} className="text-primary-foreground hover:bg-primary-foreground/10 gap-1">
+          <LogOut className="h-4 w-4" /> Log Out
+        </Button>
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-3xl">
