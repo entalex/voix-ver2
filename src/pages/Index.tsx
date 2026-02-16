@@ -6,6 +6,7 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import UseCases from "@/components/landing/UseCases";
 import Team from "@/components/landing/Team";
 import CTABanner from "@/components/landing/CTABanner";
+import Contact from "@/components/landing/Contact";
 import Footer from "@/components/landing/Footer";
 
 const Index = () => {
@@ -20,6 +21,7 @@ const Index = () => {
         <UseCases />
         <Team />
         <CTABanner />
+        <Contact />
       </main>
       <Footer />
     </div>
