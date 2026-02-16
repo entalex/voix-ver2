@@ -1,7 +1,9 @@
-import { teamMembers } from "@/data/landingData";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useLandingData } from "@/context/LandingDataContext";
 
 const Team = () => {
+  const { teamMembers } = useLandingData();
+
   return (
     <section id="team" className="py-16 md:py-24 bg-muted/30">
       <div className="container mx-auto px-4">
@@ -13,14 +15,14 @@ const Team = () => {
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
-          {teamMembers.map((member) => (
-            <div key={member.name} className="flex flex-col items-center">
+          {teamMembers.map((member, index) => (
+            <div key={index} className="flex flex-col items-center">
+              {/* TODO: Replace AvatarFallback with AvatarImage using member.photoUrl from Supabase Storage */}
               <Avatar className="h-28 w-28 mb-4">
                 <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-semibold">
                   {member.initials}
                 </AvatarFallback>
               </Avatar>
-              {/* Editable-style text box */}
               <div className="w-full rounded-lg border border-border bg-background p-4 text-center shadow-sm">
                 <p className="text-base font-semibold text-primary">{member.name}</p>
                 <p className="text-sm text-muted-foreground mt-0.5">{member.role}</p>
