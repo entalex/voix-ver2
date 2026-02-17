@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Mic } from "lucide-react";
 import { useLandingData } from "@/context/LandingDataContext";
+import ParticleWave from "./ParticleWave";
 
 const Hero = () => {
   const { hero } = useLandingData();
@@ -18,12 +18,8 @@ const Hero = () => {
           {hero.buttonText}
         </Button>
 
-        {/* TODO: Replace placeholder with dynamic hero image from Supabase Storage */}
-        <div className="mt-12 mx-auto max-w-3xl aspect-video rounded-2xl bg-primary/5 border-2 border-dashed border-primary/20 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3 text-muted-foreground">
-            <Mic className="h-12 w-12 text-secondary" />
-            <span className="text-sm font-medium">Hero Image / 3D Illustration</span>
-          </div>
+        <div className="mt-12 mx-auto max-w-3xl aspect-video rounded-2xl overflow-hidden relative">
+          <ParticleWave />
         </div>
       </div>
     </section>
