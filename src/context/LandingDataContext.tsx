@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 import {
   features as defaultFeatures,
   teamMembers as defaultTeamMembers,
+  teamSection as defaultTeamSection,
 } from "@/data/landingData";
 
 // --- Types ---
@@ -23,16 +24,23 @@ export interface TeamMember {
   name: string;
   role: string;
   initials: string;
-  // TODO: Add `photoUrl` field here when connecting to Supabase storage for photo uploads
+}
+
+export interface TeamSectionData {
+  heading: string;
+  bannerLabel: string;
+  barText: string;
 }
 
 interface LandingDataState {
   hero: HeroData;
   features: FeatureItem[];
   teamMembers: TeamMember[];
+  teamSection: TeamSectionData;
   setHero: (hero: HeroData) => void;
   setFeatures: (features: FeatureItem[]) => void;
   setTeamMembers: (members: TeamMember[]) => void;
+  setTeamSection: (data: TeamSectionData) => void;
 }
 
 const defaultHero: HeroData = {
@@ -50,12 +58,10 @@ export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
     defaultFeatures.map(({ title, description, imageLabel }) => ({ title, description, imageLabel }))
   );
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(defaultTeamMembers);
-
-  // TODO: Replace useState with Supabase realtime subscription for persistent storage
-  // e.g. useEffect(() => { supabase.from('landing_config').select('*')... }, [])
+  const [teamSection, setTeamSection] = useState<TeamSectionData>(defaultTeamSection);
 
   return (
-    <LandingDataContext.Provider value={{ hero, features, teamMembers, setHero, setFeatures, setTeamMembers }}>
+    <LandingDataContext.Provider value={{ hero, features, teamMembers, teamSection, setHero, setFeatures, setTeamMembers, setTeamSection }}>
       {children}
     </LandingDataContext.Provider>
   );

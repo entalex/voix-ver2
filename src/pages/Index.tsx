@@ -2,10 +2,8 @@ import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import WhyVoix from "@/components/landing/WhyVoix";
 import Features from "@/components/landing/Features";
-import HowItWorks from "@/components/landing/HowItWorks";
 import UseCases from "@/components/landing/UseCases";
 import Team from "@/components/landing/Team";
-import CTABanner from "@/components/landing/CTABanner";
 import Contact from "@/components/landing/Contact";
 import Footer from "@/components/landing/Footer";
 
@@ -17,10 +15,8 @@ const Index = () => {
         <Hero />
         <WhyVoix />
         <Features />
-        <HowItWorks />
-        <UseCases />
         <Team />
-        <CTABanner />
+        <UseCases />
         <Contact />
       </main>
       <Footer />
