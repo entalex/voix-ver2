@@ -85,6 +85,12 @@ export const useCases = [
   },
 ];
 
+export const teamSection = {
+  heading: "Meet the Team",
+  bannerLabel: "Team Banner",
+  barText: "The people building the future of voice intelligence — united by a mission to make every conversation count.",
+};
+
 export const teamMembers = [
   {
     name: "Sarah Chen",
