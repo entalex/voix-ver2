@@ -83,6 +83,12 @@ export const useCases = [
     description: "Evaluate teaching quality and student engagement through objective voice analysis.",
     imageLabel: "Education Campus",
   },
+  {
+    icon: Building2,
+    title: "Enterprise",
+    description: "Scale voice intelligence across departments to drive consistency and operational excellence.",
+    imageLabel: "Enterprise Office",
+  },
 ];
 
 export const teamSection = {
