@@ -15,11 +15,10 @@ interface Particle {
 
 const PRIMARY = "#41506C";
 const AMBER = "#F1A900";
-const LINE_COLOR = "rgba(65, 80, 108, 0.06)";
-const PARTICLE_COUNT = 120;
-const CONNECTION_DIST = 100;
-const MOUSE_RADIUS = 120;
-const MOUSE_FORCE = 3;
+const PARTICLE_COUNT = 180;
+const CONNECTION_DIST = 110;
+const MOUSE_RADIUS = 160;
+const MOUSE_FORCE = 8;
 
 const ParticleWave = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -32,15 +31,15 @@ const ParticleWave = () => {
     const pts: Particle[] = [];
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const x = Math.random() * w;
-      const baseY = h * 0.2 + Math.random() * h * 0.6;
+      const baseY = h * 0.25 + Math.random() * h * 0.5;
       pts.push({
         x,
         y: baseY,
         baseY,
         vx: 0,
         vy: 0,
-        radius: 1.5 + Math.random() * 1.5,
-        isAmber: Math.random() < 0.1,
+        radius: 1.2 + Math.random() * 2,
+        isAmber: Math.random() < 0.12,
         phase1: Math.random() * Math.PI * 2,
         phase2: Math.random() * Math.PI * 2,
         phase3: Math.random() * Math.PI * 2,
@@ -85,30 +84,36 @@ const ParticleWave = () => {
       const w = canvas.width / (window.devicePixelRatio || 1);
       const h = canvas.height / (window.devicePixelRatio || 1);
       ctx.clearRect(0, 0, w, h);
-      time.current += 0.008;
+      time.current += 0.006;
       const t = time.current;
       const pts = particles.current;
 
-      // Update positions
+      // Update positions — ocean-like wave motion
       for (const p of pts) {
-        const wave1 = Math.sin(p.x * 0.008 + t * 1.2 + p.phase1) * 25;
-        const wave2 = Math.sin(p.x * 0.012 + t * 0.8 + p.phase2) * 18;
-        const wave3 = Math.sin(p.x * 0.005 + t * 1.6 + p.phase3) * 12;
-        const targetY = p.baseY + wave1 + wave2 + wave3;
+        const wave1 = Math.sin(p.x * 0.006 + t * 1.0 + p.phase1) * 35;
+        const wave2 = Math.sin(p.x * 0.01 + t * 0.6 + p.phase2) * 22;
+        const wave3 = Math.cos(p.x * 0.004 + t * 1.4 + p.phase3) * 15;
+        const wave4 = Math.sin(p.x * 0.015 + t * 2.0 + p.phase1 * 0.5) * 8;
+        const targetY = p.baseY + wave1 + wave2 + wave3 + wave4;
 
-        // Mouse repulsion
+        // Horizontal drift for flowing feel
+        const driftX = Math.sin(t * 0.3 + p.phase2) * 0.15;
+
+        // Mouse repulsion — stronger scatter
         const dx = p.x - mouse.current.x;
         const dy = p.y - mouse.current.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < MOUSE_RADIUS && dist > 0) {
-          const force = (MOUSE_RADIUS - dist) / MOUSE_RADIUS * MOUSE_FORCE;
+          const force = ((MOUSE_RADIUS - dist) / MOUSE_RADIUS) ** 1.5 * MOUSE_FORCE;
           p.vx += (dx / dist) * force;
           p.vy += (dy / dist) * force;
         }
 
-        p.vy += (targetY - p.y) * 0.04;
-        p.vx *= 0.92;
-        p.vy *= 0.92;
+        // Slow, gentle return to harmony
+        p.vy += (targetY - p.y) * 0.02;
+        p.vx += driftX;
+        p.vx *= 0.96;
+        p.vy *= 0.96;
         p.x += p.vx;
         p.y += p.vy;
 
