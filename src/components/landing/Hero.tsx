@@ -18,7 +18,7 @@ const Hero = () => {
           {hero.buttonText}
         </Button>
 
-        <div className="mt-12 mx-auto max-w-3xl aspect-video rounded-2xl overflow-hidden relative">
+        <div className="mt-12 -mx-4 md:-mx-8 lg:-mx-16 aspect-[16/7] relative">
           <ParticleWave />
         </div>
       </div>
