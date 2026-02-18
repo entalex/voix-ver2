@@ -13,12 +13,12 @@ const Features = () => {
         </h2>
 
         {isLoading ? (
-          <div className="flex flex-col gap-16">
+          <div className="flex flex-col gap-12 md:gap-16">
             {[0, 1].map((i) => (
-              <div key={i} className="flex flex-col md:flex-row items-stretch gap-6">
-                <Skeleton className="w-full md:w-[55%] aspect-[16/10] rounded-xl" />
-                <div className="w-full md:w-[45%] space-y-3 py-4">
-                  <Skeleton className="h-7 w-3/4" />
+              <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                <Skeleton className="w-full aspect-[3/2] rounded-xl" />
+                <div className="flex flex-col justify-center space-y-3">
+                  <Skeleton className="h-6 w-3/4" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-5/6" />
                 </div>
@@ -26,24 +26,24 @@ const Features = () => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col gap-16">
+          <div className="flex flex-col gap-12 md:gap-16">
             {features.map((feature, index) => {
               const isEven = index % 2 === 0;
               return (
                 <div
                   key={feature.id}
-                  className={`flex flex-col ${isEven ? "md:flex-row" : "md:flex-row-reverse"} items-stretch gap-6`}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center"
                 >
                   {/* Image */}
-                  <div className="w-full md:w-[55%] flex-shrink-0">
+                  <div className={`${isEven ? "md:order-1" : "md:order-2"}`}>
                     {feature.image_url ? (
                       <img
                         src={feature.image_url}
                         alt={feature.title}
-                        className="w-full h-full object-cover rounded-xl bg-muted"
+                        className="w-full aspect-[3/2] object-cover rounded-xl bg-muted"
                       />
                     ) : (
-                      <div className="w-full aspect-[16/10] md:aspect-auto md:h-full rounded-xl bg-muted flex items-center justify-center">
+                      <div className="w-full aspect-[3/2] rounded-xl bg-muted flex items-center justify-center">
                         <div className="flex flex-col items-center gap-2 text-muted-foreground">
                           <Mic className="h-8 w-8 text-secondary" />
                           <span className="text-xs font-medium">Feature Image</span>
@@ -53,7 +53,7 @@ const Features = () => {
                   </div>
 
                   {/* Text */}
-                  <div className="w-full md:w-[45%] flex-shrink-0 flex flex-col justify-center py-2">
+                  <div className={`flex flex-col justify-center ${isEven ? "md:order-2" : "md:order-1"}`}>
                     <h3 className="text-lg md:text-xl font-bold text-primary">{feature.title}</h3>
                     <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
                   </div>
