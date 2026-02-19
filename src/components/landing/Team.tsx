@@ -13,8 +13,16 @@ const Team = () => {
 
         {/* Wide Banner Image */}
         <div className="max-w-5xl mx-auto">
-          <div className="w-full aspect-[3/1] rounded-t-xl bg-muted flex items-center justify-center border border-border border-b-0">
-            <span className="text-muted-foreground text-lg">{teamSection.bannerLabel}</span>
+          <div className="w-full aspect-[3/1] rounded-t-xl bg-muted flex items-center justify-center border border-border border-b-0 overflow-hidden">
+            {teamSection.bannerImageUrl ? (
+              <img
+                src={teamSection.bannerImageUrl}
+                alt="Team Banner"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-muted-foreground text-lg">{teamSection.bannerLabel}</span>
+            )}
           </div>
 
           {/* Text Bar — same width as banner */}
