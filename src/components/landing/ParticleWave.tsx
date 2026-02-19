@@ -1,184 +1,169 @@
-import { useRef, useMemo, useCallback } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import * as THREE from "three";
+import { useRef, useEffect, useCallback } from "react";
 
-const NAVY = new THREE.Color("#41506C");
-const AMBER = new THREE.Color("#F1A900");
-const GLOW_BLUE = new THREE.Color("#7BA3D4");
-const BRIGHT_AMBER = new THREE.Color("#FFD060");
+interface Particle {
+  x: number;
+  y: number;
+  baseY: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  isAmber: boolean;
+  phase1: number;
+  phase2: number;
+  phase3: number;
+}
 
-const COLS = 140;
-const ROWS = 50;
-const SPACING = 0.15;
-const AMBER_RATIO = 0.06;
-
-const WAVES = [
-  { amp: 0.3, freqX: 0.7, freqZ: 0.35, speed: 0.5, phaseX: 0, phaseZ: 0 },
-  { amp: 0.22, freqX: 1.1, freqZ: 0.6, speed: 0.75, phaseX: 2.0, phaseZ: 1.2 },
-  { amp: 0.14, freqX: 1.6, freqZ: 1.0, speed: 1.2, phaseX: 4.0, phaseZ: 2.8 },
-];
-
-const WaveParticles = () => {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const mouseWorld = useRef(new THREE.Vector3(-999, 0, -999));
-  const raycaster = useMemo(() => new THREE.Raycaster(), []);
-  const planeRef = useRef<THREE.Mesh>(null);
-  const { camera } = useThree();
-
-  const dummy = useMemo(() => new THREE.Object3D(), []);
-  const count = COLS * ROWS;
-
-  const { basePositions, isAmber, seeds } = useMemo(() => {
-    const positions = new Float32Array(count * 3);
-    const amber = new Uint8Array(count);
-    const s = new Float32Array(count);
-    const halfW = (COLS - 1) * SPACING * 0.5;
-    const halfD = (ROWS - 1) * SPACING * 0.5;
-
-    for (let i = 0; i < ROWS; i++) {
-      for (let j = 0; j < COLS; j++) {
-        const idx = i * COLS + j;
-        positions[idx * 3] = j * SPACING - halfW;
-        positions[idx * 3 + 1] = 0;
-        positions[idx * 3 + 2] = i * SPACING - halfD;
-        amber[idx] = Math.random() < AMBER_RATIO ? 1 : 0;
-        s[idx] = Math.random() * 100;
-      }
-    }
-    return { basePositions: positions, isAmber: amber, seeds: s };
-  }, [count]);
-
-  const colors = useMemo(() => {
-    const c = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      const color = isAmber[i] ? AMBER : NAVY;
-      c[i * 3] = color.r;
-      c[i * 3 + 1] = color.g;
-      c[i * 3 + 2] = color.b;
-    }
-    return c;
-  }, [count, isAmber]);
-
-  const onPointerMove = useCallback((e: any) => {
-    if (!planeRef.current) return;
-    const ndc = new THREE.Vector2(
-      (e.clientX / window.innerWidth) * 2 - 1,
-      -(e.clientY / window.innerHeight) * 2 + 1
-    );
-    raycaster.setFromCamera(ndc, camera);
-    const intersects = raycaster.intersectObject(planeRef.current);
-    if (intersects.length > 0) {
-      mouseWorld.current.copy(intersects[0].point);
-    }
-  }, [camera, raycaster]);
-
-  const onPointerLeave = useCallback(() => {
-    mouseWorld.current.set(-999, 0, -999);
-  }, []);
-
-  useFrame(({ clock }) => {
-    if (!meshRef.current) return;
-    const t = clock.getElapsedTime();
-    const mx = mouseWorld.current.x;
-    const mz = mouseWorld.current.z;
-    const colorAttr = meshRef.current.instanceColor;
-
-    for (let i = 0; i < count; i++) {
-      const bx = basePositions[i * 3];
-      const bz = basePositions[i * 3 + 2];
-      const seed = seeds[i];
-
-      // Sum 3 waves
-      let y = 0;
-      for (const w of WAVES) {
-        y += w.amp * Math.sin(bx * w.freqX + w.phaseX + t * w.speed)
-                    * Math.cos(bz * w.freqZ + w.phaseZ + t * w.speed * 0.6);
-      }
-
-      // Micro-jitter for organic feel
-      y += Math.sin(t * 2.5 + seed) * 0.015;
-
-      // Mouse disruption — ripple effect
-      const dx = bx - mx;
-      const dz = bz - mz;
-      const dist = Math.sqrt(dx * dx + dz * dz);
-      const mouseRadius = 3.5;
-      if (dist < mouseRadius) {
-        const force = (1 - dist / mouseRadius) * (1 - dist / mouseRadius);
-        y += force * 1.0 * Math.sin(t * 5 + dist * 3);
-      }
-
-      dummy.position.set(bx, y, bz);
-
-      // Scale: larger at peaks, amber slightly bigger
-      const heightFactor = 0.5 + Math.abs(y) * 1.2;
-      const baseScale = isAmber[i] ? 0.055 : 0.03;
-      dummy.scale.setScalar(baseScale * heightFactor);
-      dummy.updateMatrix();
-      meshRef.current.setMatrixAt(i, dummy.matrix);
-
-      // Dynamic colors
-      if (colorAttr) {
-        if (isAmber[i]) {
-          const glow = 0.7 + Math.sin(t * 4 + seed) * 0.3;
-          colorAttr.setXYZ(i,
-            AMBER.r + (BRIGHT_AMBER.r - AMBER.r) * glow,
-            AMBER.g + (BRIGHT_AMBER.g - AMBER.g) * glow,
-            AMBER.b + (BRIGHT_AMBER.b - AMBER.b) * glow
-          );
-        } else {
-          const brightness = 0.3 + Math.abs(y) * 1.5;
-          const b = Math.min(brightness, 1);
-          colorAttr.setXYZ(i,
-            NAVY.r + (GLOW_BLUE.r - NAVY.r) * b,
-            NAVY.g + (GLOW_BLUE.g - NAVY.g) * b,
-            NAVY.b + (GLOW_BLUE.b - NAVY.b) * b
-          );
-        }
-      }
-    }
-
-    meshRef.current.instanceMatrix.needsUpdate = true;
-    if (colorAttr) colorAttr.needsUpdate = true;
-  });
-
-  return (
-    <group onPointerMove={onPointerMove as any} onPointerLeave={onPointerLeave as any}>
-      {/* Invisible plane for raycasting mouse position */}
-      <mesh ref={planeRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} visible={false}>
-        <planeGeometry args={[50, 50]} />
-        <meshBasicMaterial side={THREE.DoubleSide} />
-      </mesh>
-
-      <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
-        <sphereGeometry args={[1, 6, 4]} />
-        <meshBasicMaterial toneMapped={false} />
-        <instancedBufferAttribute
-          attach="instanceColor"
-          args={[colors, 3]}
-        />
-      </instancedMesh>
-    </group>
-  );
-};
+const PRIMARY = "#41506C";
+const AMBER = "#F1A900";
+const LINE_COLOR = "rgba(65, 80, 108, 0.06)";
+const PARTICLE_COUNT = 120;
+const CONNECTION_DIST = 100;
+const MOUSE_RADIUS = 120;
+const MOUSE_FORCE = 3;
 
 const ParticleWave = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particles = useRef<Particle[]>([]);
+  const mouse = useRef({ x: -9999, y: -9999 });
+  const animRef = useRef<number>(0);
+  const time = useRef(0);
+
+  const initParticles = useCallback((w: number, h: number) => {
+    const pts: Particle[] = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const x = Math.random() * w;
+      const baseY = h * 0.2 + Math.random() * h * 0.6;
+      pts.push({
+        x,
+        y: baseY,
+        baseY,
+        vx: 0,
+        vy: 0,
+        radius: 1.5 + Math.random() * 1.5,
+        isAmber: Math.random() < 0.1,
+        phase1: Math.random() * Math.PI * 2,
+        phase2: Math.random() * Math.PI * 2,
+        phase3: Math.random() * Math.PI * 2,
+      });
+    }
+    particles.current = pts;
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      const rect = canvas.parentElement!.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+      ctx.scale(dpr, dpr);
+      initParticles(rect.width, rect.height);
+    };
+
+    resize();
+    window.addEventListener("resize", resize);
+
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.current.x = e.clientX - rect.left;
+      mouse.current.y = e.clientY - rect.top;
+    };
+    const onMouseLeave = () => {
+      mouse.current.x = -9999;
+      mouse.current.y = -9999;
+    };
+    canvas.addEventListener("mousemove", onMouseMove);
+    canvas.addEventListener("mouseleave", onMouseLeave);
+
+    const draw = () => {
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      const h = canvas.height / (window.devicePixelRatio || 1);
+      ctx.clearRect(0, 0, w, h);
+      time.current += 0.008;
+      const t = time.current;
+      const pts = particles.current;
+
+      // Update positions
+      for (const p of pts) {
+        const wave1 = Math.sin(p.x * 0.008 + t * 1.2 + p.phase1) * 25;
+        const wave2 = Math.sin(p.x * 0.012 + t * 0.8 + p.phase2) * 18;
+        const wave3 = Math.sin(p.x * 0.005 + t * 1.6 + p.phase3) * 12;
+        const targetY = p.baseY + wave1 + wave2 + wave3;
+
+        // Mouse repulsion
+        const dx = p.x - mouse.current.x;
+        const dy = p.y - mouse.current.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MOUSE_RADIUS && dist > 0) {
+          const force = (MOUSE_RADIUS - dist) / MOUSE_RADIUS * MOUSE_FORCE;
+          p.vx += (dx / dist) * force;
+          p.vy += (dy / dist) * force;
+        }
+
+        p.vy += (targetY - p.y) * 0.04;
+        p.vx *= 0.92;
+        p.vy *= 0.92;
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Wrap horizontally
+        if (p.x < -10) p.x = w + 10;
+        if (p.x > w + 10) p.x = -10;
+      }
+
+      // Draw connections
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < pts.length; i++) {
+        for (let j = i + 1; j < pts.length; j++) {
+          const dx = pts[i].x - pts[j].x;
+          const dy = pts[i].y - pts[j].y;
+          const d = dx * dx + dy * dy;
+          if (d < CONNECTION_DIST * CONNECTION_DIST) {
+            const alpha = 1 - Math.sqrt(d) / CONNECTION_DIST;
+            ctx.strokeStyle = `rgba(65, 80, 108, ${alpha * 0.08})`;
+            ctx.beginPath();
+            ctx.moveTo(pts[i].x, pts[i].y);
+            ctx.lineTo(pts[j].x, pts[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw particles
+      for (const p of pts) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.isAmber ? AMBER : PRIMARY;
+        ctx.globalAlpha = p.isAmber ? 0.9 : 0.7;
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      animRef.current = requestAnimationFrame(draw);
+    };
+
+    animRef.current = requestAnimationFrame(draw);
+
+    return () => {
+      cancelAnimationFrame(animRef.current);
+      window.removeEventListener("resize", resize);
+      canvas.removeEventListener("mousemove", onMouseMove);
+      canvas.removeEventListener("mouseleave", onMouseLeave);
+    };
+  }, [initParticles]);
+
   return (
-    <div className="absolute inset-0 w-full h-full" style={{ pointerEvents: "auto" }}>
-      <Canvas
-        camera={{
-          position: [0, 4, 6.5],
-          fov: 48,
-          near: 0.1,
-          far: 100,
-        }}
-        style={{ background: "transparent" }}
-        gl={{ alpha: true, antialias: true }}
-        dpr={[1, 1.5]}
-      >
-        <WaveParticles />
-      </Canvas>
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full"
+      style={{ pointerEvents: "auto" }}
+    />
   );
 };
 
