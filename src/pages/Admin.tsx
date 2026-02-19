@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLandingData, HeroData, TeamMember } from "@/context/LandingDataContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Plus, Trash2, LogOut } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, LogOut, Upload, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import FeaturesEditor from "@/components/admin/FeaturesEditor";
+import { supabase } from "@/integrations/supabase/client";
 
 // --- Hero Editor ---
 const HeroEditor = () => {
@@ -47,9 +48,11 @@ const HeroEditor = () => {
 
 // --- Team Editor ---
 const TeamEditor = () => {
-  const { teamMembers, setTeamMembers } = useLandingData();
+  const { teamMembers, setTeamMembers, teamSection, setTeamSection } = useLandingData();
   const { toast } = useToast();
   const [draft, setDraft] = useState<TeamMember[]>(() => teamMembers.map((m) => ({ ...m })));
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const bannerFileRef = useRef<HTMLInputElement | null>(null);
 
   const update = (index: number, field: keyof TeamMember, value: string) => {
     setDraft((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
@@ -68,36 +71,98 @@ const TeamEditor = () => {
     toast({ title: "Team updated!" });
   };
 
+  const handleBannerUpload = async (file: File) => {
+    setUploadingBanner(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `team-banner/banner-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("voix-images").upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from("voix-images").getPublicUrl(path);
+      const publicUrl = `${data.publicUrl}?t=${Date.now()}`;
+      setTeamSection({ ...teamSection, bannerImageUrl: publicUrl });
+      toast({ title: "Team banner uploaded!" });
+    } catch (err) {
+      toast({ title: "Upload failed", description: String(err), variant: "destructive" });
+    } finally {
+      setUploadingBanner(false);
+    }
+  };
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Team Members</CardTitle>
-        <Button variant="outline" size="sm" onClick={addMember}><Plus className="h-4 w-4 mr-1" /> Add</Button>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {draft.map((member, i) => (
-          <div key={i} className="p-4 border rounded-lg space-y-3 relative">
-            <button type="button" onClick={() => removeMember(i)} className="absolute top-3 right-3 text-destructive hover:text-destructive/80">
-              <Trash2 className="h-4 w-4" />
-            </button>
-            <span className="text-xs font-medium text-muted-foreground">Member {i + 1}</span>
-            <div>
-              <Label>Name</Label>
-              <Input value={member.name} onChange={(e) => update(i, "name", e.target.value)} maxLength={80} className="mt-1" />
+    <div className="space-y-6">
+      {/* Team Banner Upload */}
+      <Card>
+        <CardHeader><CardTitle>Team Banner Image</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          {teamSection.bannerImageUrl ? (
+            <img
+              src={teamSection.bannerImageUrl}
+              alt="Team Banner Preview"
+              className="w-full aspect-[3/1] object-cover rounded-lg border"
+            />
+          ) : (
+            <div className="w-full aspect-[3/1] rounded-lg border bg-muted flex items-center justify-center text-muted-foreground">
+              No banner uploaded yet
             </div>
-            <div>
-              <Label>Role</Label>
-              <Input value={member.role} onChange={(e) => update(i, "role", e.target.value)} maxLength={80} className="mt-1" />
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => bannerFileRef.current?.click()}
+            disabled={uploadingBanner}
+          >
+            {uploadingBanner ? (
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Uploading...</>
+            ) : (
+              <><Upload className="h-4 w-4 mr-2" /> Upload Banner Image</>
+            )}
+          </Button>
+          <input
+            ref={bannerFileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleBannerUpload(file);
+            }}
+          />
+          <p className="text-xs text-muted-foreground">Recommended: wide landscape image (3:1 ratio)</p>
+        </CardContent>
+      </Card>
+
+      {/* Team Members */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Team Members</CardTitle>
+          <Button variant="outline" size="sm" onClick={addMember}><Plus className="h-4 w-4 mr-1" /> Add</Button>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {draft.map((member, i) => (
+            <div key={i} className="p-4 border rounded-lg space-y-3 relative">
+              <button type="button" onClick={() => removeMember(i)} className="absolute top-3 right-3 text-destructive hover:text-destructive/80">
+                <Trash2 className="h-4 w-4" />
+              </button>
+              <span className="text-xs font-medium text-muted-foreground">Member {i + 1}</span>
+              <div>
+                <Label>Name</Label>
+                <Input value={member.name} onChange={(e) => update(i, "name", e.target.value)} maxLength={80} className="mt-1" />
+              </div>
+              <div>
+                <Label>Role</Label>
+                <Input value={member.role} onChange={(e) => update(i, "role", e.target.value)} maxLength={80} className="mt-1" />
+              </div>
+              <div>
+                <Label>Initials</Label>
+                <Input value={member.initials} onChange={(e) => update(i, "initials", e.target.value)} maxLength={3} className="mt-1" />
+              </div>
             </div>
-            <div>
-              <Label>Initials</Label>
-              <Input value={member.initials} onChange={(e) => update(i, "initials", e.target.value)} maxLength={3} className="mt-1" />
-            </div>
-          </div>
-        ))}
-        <Button onClick={save} className="bg-secondary text-secondary-foreground hover:bg-secondary/90">Save Team</Button>
-      </CardContent>
-    </Card>
+          ))}
+          <Button onClick={save} className="bg-secondary text-secondary-foreground hover:bg-secondary/90">Save Team</Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

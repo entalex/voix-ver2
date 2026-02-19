@@ -30,6 +30,7 @@ export interface TeamSectionData {
   heading: string;
   bannerLabel: string;
   barText: string;
+  bannerImageUrl?: string;
 }
 
 interface LandingDataState {
