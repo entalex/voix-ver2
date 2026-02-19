@@ -1,9 +1,7 @@
 const footerLinks = [
-  { label: "Features", href: "#features" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "Use Cases", href: "#use-cases" },
+  { label: "Product", href: "#features" },
   { label: "Team", href: "#team" },
-  { label: "Contact", href: "#contact" },
+  { label: "Use Cases", href: "#use-cases" },
 ];
 
 const Footer = () => {
