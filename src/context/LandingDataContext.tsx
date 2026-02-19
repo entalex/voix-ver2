@@ -1,9 +1,10 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import {
   features as defaultFeatures,
   teamMembers as defaultTeamMembers,
   teamSection as defaultTeamSection,
 } from "@/data/landingData";
+import { supabase } from "@/integrations/supabase/client";
 
 // --- Types ---
 
@@ -17,7 +18,7 @@ export interface FeatureItem {
   title: string;
   description: string;
   imageLabel: string;
-  imageUrl?: string; // Local blob URL for now; TODO: Replace with Supabase Storage URL
+  imageUrl?: string;
 }
 
 export interface TeamMember {
@@ -59,7 +60,28 @@ export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
     defaultFeatures.map(({ title, description, imageLabel }) => ({ title, description, imageLabel }))
   );
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(defaultTeamMembers);
-  const [teamSection, setTeamSection] = useState<TeamSectionData>(defaultTeamSection);
+  const [teamSection, setTeamSectionState] = useState<TeamSectionData>(defaultTeamSection);
+
+  // Load persisted settings from database on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      const { data } = await supabase
+        .from("site_settings")
+        .select("key, value")
+        .in("key", ["team_banner_url"]);
+      if (data) {
+        const bannerRow = data.find((r) => r.key === "team_banner_url");
+        if (bannerRow?.value) {
+          setTeamSectionState((prev) => ({ ...prev, bannerImageUrl: bannerRow.value ?? undefined }));
+        }
+      }
+    };
+    loadSettings();
+  }, []);
+
+  const setTeamSection = (data: TeamSectionData) => {
+    setTeamSectionState(data);
+  };
 
   return (
     <LandingDataContext.Provider value={{ hero, features, teamMembers, teamSection, setHero, setFeatures, setTeamMembers, setTeamSection }}>
