@@ -4,10 +4,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 
 const navLinks = [
-  { label: "Features", href: "#features" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "Use Cases", href: "#use-cases" },
+  { label: "Product", href: "#features" },
   { label: "Team", href: "#team" },
+  { label: "Use Cases", href: "#use-cases" },
 ];
 
 const Navbar = () => {
