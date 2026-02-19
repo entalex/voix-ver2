@@ -75,11 +75,21 @@ const TeamEditor = () => {
     setUploadingBanner(true);
     try {
       const ext = file.name.split(".").pop();
-      const path = `team-banner/banner-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("voix-images").upload(path, file, { upsert: true });
-      if (error) throw error;
-      const { data } = supabase.storage.from("voix-images").getPublicUrl(path);
+      const storagePath = `team-banner/banner.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("voix-images")
+        .upload(storagePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("voix-images").getPublicUrl(storagePath);
       const publicUrl = `${data.publicUrl}?t=${Date.now()}`;
+
+      // Persist to database so it survives page refresh
+      const { error: dbError } = await supabase
+        .from("site_settings")
+        .upsert({ key: "team_banner_url", value: publicUrl }, { onConflict: "key" });
+      if (dbError) throw dbError;
+
       setTeamSection({ ...teamSection, bannerImageUrl: publicUrl });
       toast({ title: "Team banner uploaded!" });
     } catch (err) {
