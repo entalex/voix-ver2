@@ -1,84 +1,9 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect } from "react";
 
 const ParticleWave = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
-  const time = useRef(0);
-
-  const draw = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number) => {
-    ctx.clearRect(0, 0, w, h);
-    time.current += 0.003;
-    const t = time.current;
-    const cy = h / 2;
-
-    // --- Dot field (background halftone dots) ---
-    const dotSpacing = 18;
-    const dotRows = Math.ceil(h / dotSpacing);
-    const dotCols = Math.ceil(w / dotSpacing);
-    for (let r = 0; r < dotRows; r++) {
-      for (let c = 0; c < dotCols; c++) {
-        const x = c * dotSpacing + (r % 2 === 0 ? 0 : dotSpacing / 2);
-        const y = r * dotSpacing;
-        // Fade dots based on distance from center wave
-        const distFromCenter = Math.abs(y - cy);
-        const maxDist = h * 0.38;
-        if (distFromCenter > maxDist) continue;
-        const fade = 1 - distFromCenter / maxDist;
-        const waveInfluence =
-          Math.sin(x * 0.012 + t * 1.5) * 20 +
-          Math.sin(x * 0.008 + t * 0.8) * 15;
-        const adjustedDist = Math.abs(y - cy - waveInfluence);
-        const fade2 = Math.max(0, 1 - adjustedDist / maxDist);
-        const alpha = fade * fade2 * 0.35;
-        if (alpha < 0.02) continue;
-        const radius = 1.2 + fade2 * 1.0;
-        // Color gradient from blue-purple (left) to teal (right)
-        const ratio = x / w;
-        const red = Math.round(120 + ratio * (-50));
-        const green = Math.round(140 + ratio * 60);
-        const blue = Math.round(200 + ratio * (-40));
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-        ctx.fill();
-      }
-    }
-
-    // --- Smooth flowing wave lines ---
-    const waveConfigs = [
-      { amp: 45, freq: 0.0065, speed: 0.7, color: [100, 130, 190], width: 1.8, phaseOff: 0 },
-      { amp: 38, freq: 0.0075, speed: 0.9, color: [110, 160, 200], width: 1.5, phaseOff: 1.2 },
-      { amp: 50, freq: 0.006, speed: 0.5, color: [80, 120, 180], width: 2.0, phaseOff: 2.5 },
-      { amp: 35, freq: 0.008, speed: 1.1, color: [90, 170, 190], width: 1.3, phaseOff: 3.8 },
-      { amp: 42, freq: 0.007, speed: 0.6, color: [70, 150, 170], width: 1.6, phaseOff: 5.0 },
-      { amp: 30, freq: 0.009, speed: 1.3, color: [130, 180, 200], width: 1.1, phaseOff: 0.8 },
-    ];
-
-    // Draw each wave as a set of closely spaced lines for ribbon effect
-    for (const wave of waveConfigs) {
-      for (let offset = -3; offset <= 3; offset++) {
-        ctx.beginPath();
-        const ribbonAlpha = 0.15 - Math.abs(offset) * 0.025;
-        if (ribbonAlpha <= 0) continue;
-        for (let x = 0; x <= w; x += 2) {
-          const baseWave = Math.sin(x * wave.freq + t * wave.speed + wave.phaseOff) * wave.amp;
-          const harmonic = Math.sin(x * wave.freq * 2.3 + t * wave.speed * 0.7 + wave.phaseOff + 1.5) * wave.amp * 0.3;
-          const y = cy + baseWave + harmonic + offset * 3;
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        // Gradient color shift across x
-        const grad = ctx.createLinearGradient(0, 0, w, 0);
-        const [r, g, b] = wave.color;
-        grad.addColorStop(0, `rgba(${r - 20}, ${g - 20}, ${b + 20}, ${ribbonAlpha})`);
-        grad.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, ${ribbonAlpha * 1.2})`);
-        grad.addColorStop(1, `rgba(${r + 30}, ${g + 30}, ${b - 30}, ${ribbonAlpha})`);
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = wave.width * (1 - Math.abs(offset) * 0.15);
-        ctx.stroke();
-      }
-    }
-  }, []);
+  const timeRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -104,23 +29,87 @@ const ParticleWave = () => {
     window.addEventListener("resize", resize);
 
     const loop = () => {
-      draw(ctx, w, h);
+      ctx.clearRect(0, 0, w, h);
+      timeRef.current += 0.4; // slow pixel drift
+      const shift = timeRef.current;
+      const cy = h * 0.5;
+
+      // --- 1. Static dot grid background ---
+      const spacing = 14;
+      const cols = Math.ceil(w / spacing) + 1;
+      const rows = Math.ceil(h / spacing) + 1;
+      const maxDistY = h * 0.42;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = c * spacing;
+          const y = r * spacing;
+          const distY = Math.abs(y - cy);
+          if (distY > maxDistY) continue;
+          const fade = 1 - (distY / maxDistY);
+          const alpha = fade * fade * 0.28;
+          if (alpha < 0.015) continue;
+
+          // blue-purple on left → teal on right
+          const ratio = x / w;
+          const cr = Math.round(140 - ratio * 40);   // 140→100
+          const cg = Math.round(160 + ratio * 50);   // 160→210
+          const cb = Math.round(210 - ratio * 30);   // 210→180
+
+          ctx.fillStyle = `rgba(${cr},${cg},${cb},${alpha})`;
+          ctx.beginPath();
+          ctx.arc(x, y, 1.3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // --- 2. Three ribbon waves ---
+      const waves = [
+        { lines: 28, amp: 40, freq: 0.0045, speed: 0.0008, yOff: -8,  colorStart: [110, 130, 200], colorEnd: [80, 180, 190], baseAlpha: 0.12 },
+        { lines: 24, amp: 48, freq: 0.005,  speed: 0.0006, yOff: 5,   colorStart: [90, 150, 210],  colorEnd: [60, 190, 180], baseAlpha: 0.10 },
+        { lines: 20, amp: 35, freq: 0.0055, speed: 0.001,  yOff: 0,   colorStart: [130, 150, 200], colorEnd: [100, 200, 195], baseAlpha: 0.11 },
+      ];
+
+      for (const wave of waves) {
+        for (let l = 0; l < wave.lines; l++) {
+          const ribbonPos = (l / (wave.lines - 1)) - 0.5; // -0.5 to 0.5
+          const lineAlpha = wave.baseAlpha * (1 - Math.abs(ribbonPos) * 1.4);
+          if (lineAlpha <= 0) continue;
+
+          ctx.beginPath();
+          const step = 4;
+          for (let x = 0; x <= w; x += step) {
+            const phase = shift * wave.speed;
+            const mainWave = Math.sin(x * wave.freq + phase + l * 0.04) * wave.amp;
+            const harmonic = Math.sin(x * wave.freq * 1.8 + phase * 1.3 + 2.0 + l * 0.02) * wave.amp * 0.25;
+            const y = cy + wave.yOff + mainWave + harmonic + ribbonPos * 12;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+
+          const grad = ctx.createLinearGradient(0, 0, w, 0);
+          const [r1, g1, b1] = wave.colorStart;
+          const [r2, g2, b2] = wave.colorEnd;
+          grad.addColorStop(0, `rgba(${r1},${g1},${b1},${lineAlpha})`);
+          grad.addColorStop(1, `rgba(${r2},${g2},${b2},${lineAlpha})`);
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+
       animRef.current = requestAnimationFrame(loop);
     };
+
     animRef.current = requestAnimationFrame(loop);
 
     return () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener("resize", resize);
     };
-  }, [draw]);
+  }, []);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-full h-full"
-    />
-  );
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />;
 };
 
 export default ParticleWave;
