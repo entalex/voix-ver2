@@ -35,15 +35,15 @@ const Features = () => {
                   className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center"
                 >
                   {/* Image */}
-                  <div className={`${isEven ? "md:order-1" : "md:order-2"}`}>
+                  <div className={`${isEven ? "md:order-1" : "md:order-2"} max-w-md`}>
                     {feature.image_url ? (
                       <img
                         src={feature.image_url}
                         alt={feature.title}
-                        className="w-full aspect-[3/2] object-cover rounded-xl bg-muted"
+                        className="w-full aspect-[4/3] object-cover rounded-xl bg-muted"
                       />
                     ) : (
-                      <div className="w-full aspect-[3/2] rounded-xl bg-muted flex items-center justify-center">
+                      <div className="w-full aspect-[4/3] rounded-xl bg-muted flex items-center justify-center">
                         <div className="flex flex-col items-center gap-2 text-muted-foreground">
                           <Mic className="h-8 w-8 text-secondary" />
                           <span className="text-xs font-medium">Feature Image</span>
