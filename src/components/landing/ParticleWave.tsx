@@ -1,9 +1,53 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
+
+interface Particle {
+  x: number;
+  y: number;
+  baseY: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  isAmber: boolean;
+  phase1: number;
+  phase2: number;
+  phase3: number;
+}
+
+const PRIMARY = "#41506C";
+const AMBER = "#F1A900";
+const LINE_COLOR = "rgba(65, 80, 108, 0.06)";
+const PARTICLE_COUNT = 120;
+const CONNECTION_DIST = 100;
+const MOUSE_RADIUS = 120;
+const MOUSE_FORCE = 3;
 
 const ParticleWave = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particles = useRef<Particle[]>([]);
+  const mouse = useRef({ x: -9999, y: -9999 });
   const animRef = useRef<number>(0);
-  const timeRef = useRef(0);
+  const time = useRef(0);
+
+  const initParticles = useCallback((w: number, h: number) => {
+    const pts: Particle[] = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const x = Math.random() * w;
+      const baseY = h * 0.2 + Math.random() * h * 0.6;
+      pts.push({
+        x,
+        y: baseY,
+        baseY,
+        vx: 0,
+        vy: 0,
+        radius: 1.5 + Math.random() * 1.5,
+        isAmber: Math.random() < 0.1,
+        phase1: Math.random() * Math.PI * 2,
+        phase2: Math.random() * Math.PI * 2,
+        phase3: Math.random() * Math.PI * 2,
+      });
+    }
+    particles.current = pts;
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -11,162 +55,116 @@ const ParticleWave = () => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let w = 0, h = 0;
-
     const resize = () => {
       const rect = canvas.parentElement!.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
-      w = rect.width;
-      h = rect.height;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+      ctx.scale(dpr, dpr);
+      initParticles(rect.width, rect.height);
     };
 
     resize();
     window.addEventListener("resize", resize);
 
-    // --- STATIC DOT GRID (drawn once per frame, never changes) ---
-    const drawDots = () => {
-      const spacingX = 12;
-      const spacingY = 12;
-      const cols = Math.ceil(w / spacingX) + 1;
-      const rows = Math.ceil(h / spacingY) + 1;
-      const dotRadius = 1.2;
-
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          const x = c * spacingX;
-          const y = r * spacingY;
-          const ratio = x / w;
-          // Left: light blue (170,200,230) → Right: soft teal (130,200,190)
-          const dr = Math.round(170 - ratio * 40);
-          const dg = Math.round(200 + ratio * 0);
-          const db = Math.round(230 - ratio * 40);
-          ctx.fillStyle = `rgba(${dr},${dg},${db},0.15)`;
-          ctx.beginPath();
-          ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.current.x = e.clientX - rect.left;
+      mouse.current.y = e.clientY - rect.top;
     };
-
-    // --- THREE WAVE RIBBONS ---
-    // Each wave: different frequency, amplitude, phase, vertical offset
-    // They MUST cross each other visibly
-    const waveConfigs = [
-      {
-        freq: 0.008,
-        amp: 55,
-        yOffset: -15,
-        phaseOffset: 0,
-        speed: 1,
-        linesCount: 30,
-        lineSpread: 14, // total ribbon width in px
-        colorStart: [100, 110, 180], // blue-purple
-        colorEnd: [120, 140, 200],
-        alpha: 0.08,
-      },
-      {
-        freq: 0.006,
-        amp: 45,
-        yOffset: 10,
-        phaseOffset: 2.0,
-        speed: 0.75,
-        linesCount: 26,
-        lineSpread: 12,
-        colorStart: [80, 150, 190], // blue-teal
-        colorEnd: [90, 170, 200],
-        alpha: 0.07,
-      },
-      {
-        freq: 0.01,
-        amp: 38,
-        yOffset: 5,
-        phaseOffset: 4.2,
-        speed: 1.3,
-        linesCount: 22,
-        lineSpread: 10,
-        colorStart: [60, 170, 170], // teal
-        colorEnd: [80, 190, 185],
-        alpha: 0.065,
-      },
-    ];
-
-    const getWaveY = (
-      x: number,
-      freq: number,
-      amp: number,
-      phase: number,
-      yOff: number,
-      cy: number,
-    ) => {
-      // Main sine + harmonic for organic shape
-      return (
-        cy +
-        yOff +
-        Math.sin(x * freq + phase) * amp +
-        Math.sin(x * freq * 2.1 + phase * 1.4 + 1.0) * amp * 0.2 +
-        Math.sin(x * freq * 0.5 + phase * 0.6 + 3.0) * amp * 0.15
-      );
+    const onMouseLeave = () => {
+      mouse.current.x = -9999;
+      mouse.current.y = -9999;
     };
+    canvas.addEventListener("mousemove", onMouseMove);
+    canvas.addEventListener("mouseleave", onMouseLeave);
 
-    const loop = () => {
+    const draw = () => {
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      const h = canvas.height / (window.devicePixelRatio || 1);
       ctx.clearRect(0, 0, w, h);
-      timeRef.current += 0.008; // very slow phase shift
-      const t = timeRef.current;
-      const cy = h * 0.5;
+      time.current += 0.008;
+      const t = time.current;
+      const pts = particles.current;
 
-      // 1. Draw dot grid
-      drawDots();
+      // Update positions
+      for (const p of pts) {
+        const wave1 = Math.sin(p.x * 0.008 + t * 1.2 + p.phase1) * 25;
+        const wave2 = Math.sin(p.x * 0.012 + t * 0.8 + p.phase2) * 18;
+        const wave3 = Math.sin(p.x * 0.005 + t * 1.6 + p.phase3) * 12;
+        const targetY = p.baseY + wave1 + wave2 + wave3;
 
-      // 2. Draw 3 wave ribbons
-      for (const wave of waveConfigs) {
-        const phase = t * wave.speed + wave.phaseOffset;
-        const halfSpread = wave.lineSpread / 2;
+        // Mouse repulsion
+        const dx = p.x - mouse.current.x;
+        const dy = p.y - mouse.current.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MOUSE_RADIUS && dist > 0) {
+          const force = (MOUSE_RADIUS - dist) / MOUSE_RADIUS * MOUSE_FORCE;
+          p.vx += (dx / dist) * force;
+          p.vy += (dy / dist) * force;
+        }
 
-        for (let l = 0; l < wave.linesCount; l++) {
-          const ribbonT = l / (wave.linesCount - 1); // 0..1
-          const offset = (ribbonT - 0.5) * wave.lineSpread; // -halfSpread..halfSpread
+        p.vy += (targetY - p.y) * 0.04;
+        p.vx *= 0.92;
+        p.vy *= 0.92;
+        p.x += p.vx;
+        p.y += p.vy;
 
-          // Alpha: strongest at center of ribbon, fades at edges
-          const edgeDist = Math.abs(offset) / halfSpread; // 0..1
-          const lineAlpha = wave.alpha * (1 - edgeDist * edgeDist);
-          if (lineAlpha < 0.005) continue;
+        // Wrap horizontally
+        if (p.x < -10) p.x = w + 10;
+        if (p.x > w + 10) p.x = -10;
+      }
 
-          ctx.beginPath();
-          for (let x = 0; x <= w; x += 3) {
-            const y =
-              getWaveY(x, wave.freq, wave.amp, phase, wave.yOffset, cy) + offset;
-            if (x === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
+      // Draw connections
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < pts.length; i++) {
+        for (let j = i + 1; j < pts.length; j++) {
+          const dx = pts[i].x - pts[j].x;
+          const dy = pts[i].y - pts[j].y;
+          const d = dx * dx + dy * dy;
+          if (d < CONNECTION_DIST * CONNECTION_DIST) {
+            const alpha = 1 - Math.sqrt(d) / CONNECTION_DIST;
+            ctx.strokeStyle = `rgba(65, 80, 108, ${alpha * 0.08})`;
+            ctx.beginPath();
+            ctx.moveTo(pts[i].x, pts[i].y);
+            ctx.lineTo(pts[j].x, pts[j].y);
+            ctx.stroke();
           }
-
-          const [r1, g1, b1] = wave.colorStart;
-          const [r2, g2, b2] = wave.colorEnd;
-          const grad = ctx.createLinearGradient(0, 0, w, 0);
-          grad.addColorStop(0, `rgba(${r1},${g1},${b1},${lineAlpha})`);
-          grad.addColorStop(1, `rgba(${r2},${g2},${b2},${lineAlpha})`);
-          ctx.strokeStyle = grad;
-          ctx.lineWidth = 0.8;
-          ctx.stroke();
         }
       }
 
-      animRef.current = requestAnimationFrame(loop);
+      // Draw particles
+      for (const p of pts) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.isAmber ? AMBER : PRIMARY;
+        ctx.globalAlpha = p.isAmber ? 0.9 : 0.7;
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      animRef.current = requestAnimationFrame(draw);
     };
 
-    animRef.current = requestAnimationFrame(loop);
+    animRef.current = requestAnimationFrame(draw);
 
     return () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener("resize", resize);
+      canvas.removeEventListener("mousemove", onMouseMove);
+      canvas.removeEventListener("mouseleave", onMouseLeave);
     };
-  }, []);
+  }, [initParticles]);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full"
+      style={{ pointerEvents: "auto" }}
+    />
+  );
 };
 
 export default ParticleWave;
