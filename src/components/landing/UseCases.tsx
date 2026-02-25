@@ -2,7 +2,7 @@ import { useCases } from "@/data/landingData";
 
 const UseCases = () => {
   return (
-    <section id="use-cases" className="py-16 md:py-24 bg-background">
+    <section id="use-cases" className="py-16 md:py-24 bg-muted/40">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12">
           Use Cases
@@ -12,10 +12,16 @@ const UseCases = () => {
           {useCases.map((uc) => (
             <div
               key={uc.title}
-              className="rounded-xl bg-card p-6 shadow-sm hover:shadow-md transition-shadow"
+              className="rounded-xl bg-white p-8 md:p-10 transition-shadow"
+              style={{
+                boxShadow: "0 10px 30px rgba(0, 0, 0, 0.04)",
+                border: "1px solid #E5E7EB",
+              }}
             >
-              <h3 className="text-lg font-bold text-primary mb-2">{uc.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <h3 className="text-lg font-semibold mb-3" style={{ color: "#41506C" }}>
+                {uc.title}
+              </h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#6B7280" }}>
                 {uc.description}
               </p>
             </div>
