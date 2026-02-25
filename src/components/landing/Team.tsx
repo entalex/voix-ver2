@@ -33,20 +33,6 @@ const Team = () => {
           </div>
         </div>
 
-        {/* Team Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto mt-12">
-          {teamMembers.map((member, index) => (
-            <div key={index} className="flex flex-col items-center">
-              <Avatar className="h-28 w-28 mb-4">
-                <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-semibold">
-                  {member.initials}
-                </AvatarFallback>
-              </Avatar>
-              <p className="text-base font-semibold text-primary">{member.name}</p>
-              <p className="text-sm text-muted-foreground mt-0.5">{member.role}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );
