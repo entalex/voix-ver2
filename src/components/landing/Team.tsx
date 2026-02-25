@@ -13,7 +13,7 @@ const Team = () => {
 
         {/* Wide Banner Image */}
         <div className="max-w-5xl mx-auto">
-          <div className="w-full aspect-[3/1] rounded-t-xl bg-muted flex items-center justify-center border border-border border-b-0 overflow-hidden">
+          <div className="w-full aspect-[21/9] rounded-xl rounded-b-none bg-muted flex items-center justify-center border border-border border-b-0 overflow-hidden">
             {teamSection.bannerImageUrl ? (
               <img
                 src={teamSection.bannerImageUrl}
@@ -26,7 +26,7 @@ const Team = () => {
           </div>
 
           {/* Text Bar — same width as banner */}
-          <div className="w-full rounded-b-xl px-6 py-5" style={{ backgroundColor: "#F8F9FA" }}>
+          <div className="w-full rounded-xl rounded-t-none px-6 py-5" style={{ backgroundColor: "#F8F9FA" }}>
             <p className="text-center text-muted-foreground text-base md:text-lg leading-relaxed">
               {teamSection.barText}
             </p>
