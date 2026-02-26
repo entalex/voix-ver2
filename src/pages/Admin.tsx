@@ -142,36 +142,8 @@ const TeamEditor = () => {
         </CardContent>
       </Card>
 
-      {/* Team Members */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Team Members</CardTitle>
-          <Button variant="outline" size="sm" onClick={addMember}><Plus className="h-4 w-4 mr-1" /> Add</Button>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {draft.map((member, i) => (
-            <div key={i} className="p-4 border rounded-lg space-y-3 relative">
-              <button type="button" onClick={() => removeMember(i)} className="absolute top-3 right-3 text-destructive hover:text-destructive/80">
-                <Trash2 className="h-4 w-4" />
-              </button>
-              <span className="text-xs font-medium text-muted-foreground">Member {i + 1}</span>
-              <div>
-                <Label>Name</Label>
-                <Input value={member.name} onChange={(e) => update(i, "name", e.target.value)} maxLength={80} className="mt-1" />
-              </div>
-              <div>
-                <Label>Role</Label>
-                <Input value={member.role} onChange={(e) => update(i, "role", e.target.value)} maxLength={80} className="mt-1" />
-              </div>
-              <div>
-                <Label>Initials</Label>
-                <Input value={member.initials} onChange={(e) => update(i, "initials", e.target.value)} maxLength={3} className="mt-1" />
-              </div>
-            </div>
-          ))}
-          <Button onClick={save} className="bg-secondary text-secondary-foreground hover:bg-secondary/90">Save Team</Button>
-        </CardContent>
-      </Card>
+      {/* Team Banner Save */}
+      <Button onClick={save} className="bg-secondary text-secondary-foreground hover:bg-secondary/90">Save Team</Button>
     </div>
   );
 };
