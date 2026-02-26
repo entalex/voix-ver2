@@ -7,7 +7,7 @@ const Features = () => {
 
   return (
     <section id="features" className="py-16 md:py-24 bg-background">
-      <div className="container mx-auto px-4 max-w-5xl">
+      <div className="max-w-[1200px] mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12">
           Product Features
         </h2>
@@ -54,7 +54,7 @@ const Features = () => {
 
                   {/* Text */}
                   <div className={`flex flex-col justify-center ${isEven ? "md:order-2" : "md:order-1"}`}>
-                    <h3 className="text-lg md:text-xl font-bold text-primary">{feature.title}</h3>
+                    <h3 className="text-xl md:text-2xl font-bold text-primary">{feature.title}</h3>
                     <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
                   </div>
                 </div>
