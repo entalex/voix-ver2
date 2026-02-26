@@ -6,13 +6,12 @@ const Team = () => {
 
   return (
     <section id="team" className="py-16 md:py-24 bg-muted/30">
-      <div className="container mx-auto px-4">
+      <div className="max-w-[1200px] mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12">
           {teamSection.heading}
         </h2>
 
-        {/* Wide Banner Image */}
-        <div className="max-w-5xl mx-auto">
+        <div>
           <div className="w-full aspect-[21/9] rounded-xl rounded-b-none bg-muted flex items-center justify-center border border-border border-b-0 overflow-hidden">
             {teamSection.bannerImageUrl ? (
               <img

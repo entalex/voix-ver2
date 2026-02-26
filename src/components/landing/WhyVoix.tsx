@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 const WhyVoix = () => {
   return (
     <section className="py-16 md:py-24 bg-muted/30">
-      <div className="container mx-auto px-4">
+      <div className="max-w-[1200px] mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-primary text-center">
           Why VOIX?
         </h2>
@@ -12,7 +12,7 @@ const WhyVoix = () => {
           Built for teams that demand objectivity, speed, and security.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {whyVoix.map((item) => (
             <Card key={item.title} className="bg-background border-0 shadow-md">
               <CardContent className="pt-8 pb-8 flex flex-col items-center text-center">
