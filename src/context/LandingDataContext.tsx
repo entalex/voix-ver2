@@ -68,12 +68,15 @@ export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
       const { data } = await supabase
         .from("site_settings")
         .select("key, value")
-        .in("key", ["team_banner_url"]);
+        .in("key", ["team_banner_url", "team_description"]);
       if (data) {
         const bannerRow = data.find((r) => r.key === "team_banner_url");
-        if (bannerRow?.value) {
-          setTeamSectionState((prev) => ({ ...prev, bannerImageUrl: bannerRow.value ?? undefined }));
-        }
+        const descRow = data.find((r) => r.key === "team_description");
+        setTeamSectionState((prev) => ({
+          ...prev,
+          bannerImageUrl: bannerRow?.value ?? prev.bannerImageUrl,
+          barText: descRow?.value ?? prev.barText,
+        }));
       }
     };
     loadSettings();
