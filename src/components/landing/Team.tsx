@@ -28,7 +28,7 @@ const Team = () => {
           {/* Text Bar — same width as banner */}
           <div className="w-full rounded-xl rounded-t-none px-6 py-5" style={{ backgroundColor: "#F8F9FA" }}>
             <p className="text-center text-muted-foreground text-base md:text-lg leading-relaxed">
-              {teamSection.barText}
+              {teamSection.barText || "Our mission is to empower teams with voice intelligence."}
             </p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useLandingData, HeroData, TeamMember } from "@/context/LandingDataContext";
+import { useLandingData, HeroData } from "@/context/LandingDataContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,27 +48,27 @@ const HeroEditor = () => {
 
 // --- Team Editor ---
 const TeamEditor = () => {
-  const { teamMembers, setTeamMembers, teamSection, setTeamSection } = useLandingData();
+  const { teamSection, setTeamSection } = useLandingData();
   const { toast } = useToast();
-  const [draft, setDraft] = useState<TeamMember[]>(() => teamMembers.map((m) => ({ ...m })));
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [descriptionDraft, setDescriptionDraft] = useState(teamSection.barText);
+  const [savingDescription, setSavingDescription] = useState(false);
   const bannerFileRef = useRef<HTMLInputElement | null>(null);
 
-  const update = (index: number, field: keyof TeamMember, value: string) => {
-    setDraft((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
-  };
-
-  const addMember = () => {
-    setDraft((prev) => [...prev, { name: "", role: "", initials: "" }]);
-  };
-
-  const removeMember = (index: number) => {
-    setDraft((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const save = () => {
-    setTeamMembers([...draft]);
-    toast({ title: "Team updated!" });
+  const save = async () => {
+    setSavingDescription(true);
+    try {
+      const { error } = await supabase
+        .from("site_settings")
+        .upsert({ key: "team_description", value: descriptionDraft }, { onConflict: "key" });
+      if (error) throw error;
+      setTeamSection({ ...teamSection, barText: descriptionDraft });
+      toast({ title: "Team section updated!" });
+    } catch (err) {
+      toast({ title: "Save failed", description: String(err), variant: "destructive" });
+    } finally {
+      setSavingDescription(false);
+    }
   };
 
   const handleBannerUpload = async (file: File) => {
@@ -142,8 +142,26 @@ const TeamEditor = () => {
         </CardContent>
       </Card>
 
-      {/* Team Banner Save */}
-      <Button onClick={save} className="bg-secondary text-secondary-foreground hover:bg-secondary/90">Save Team</Button>
+      {/* Team Description */}
+      <Card>
+        <CardHeader><CardTitle>Team Description / Mission Text</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            value={descriptionDraft}
+            onChange={(e) => setDescriptionDraft(e.target.value)}
+            rows={5}
+            maxLength={500}
+            placeholder="Our mission is to empower teams with voice intelligence."
+            className="mt-1"
+          />
+          <p className="text-xs text-muted-foreground">This text appears in the bar below the team banner image.</p>
+        </CardContent>
+      </Card>
+
+      {/* Save */}
+      <Button onClick={save} disabled={savingDescription} className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
+        {savingDescription ? "Saving..." : "Save Team"}
+      </Button>
     </div>
   );
 };
