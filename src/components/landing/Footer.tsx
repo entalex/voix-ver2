@@ -1,3 +1,5 @@
+import { useLandingData } from "@/context/LandingDataContext";
+
 const footerLinks = [
   { label: "Product", href: "#features" },
   { label: "Team", href: "#team" },
@@ -5,6 +7,8 @@ const footerLinks = [
 ];
 
 const Footer = () => {
+  const { footer } = useLandingData();
+
   return (
     <footer className="py-10 bg-primary">
       <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6">
@@ -20,7 +24,9 @@ const Footer = () => {
             </a>
           ))}
         </div>
-        <span className="text-sm text-primary-foreground/50">© 2026 VOIX. All rights reserved.</span>
+        <span className="text-sm text-primary-foreground/50">
+          {footer.copyrightText || "© 2026 VOIX. All rights reserved."}
+        </span>
       </div>
     </footer>
   );
