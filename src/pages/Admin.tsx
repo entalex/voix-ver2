@@ -11,6 +11,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Plus, Trash2, LogOut, Upload, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import FeaturesEditor from "@/components/admin/FeaturesEditor";
+import WhyVoixEditor from "@/components/admin/WhyVoixEditor";
+import UseCasesEditor from "@/components/admin/UseCasesEditor";
+import FooterEditor from "@/components/admin/FooterEditor";
 import { supabase } from "@/integrations/supabase/client";
 
 // --- Hero Editor ---
@@ -190,14 +193,20 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <Tabs defaultValue="hero">
-          <TabsList className="mb-6 w-full justify-start">
+          <TabsList className="mb-6 w-full justify-start flex-wrap">
             <TabsTrigger value="hero">Hero</TabsTrigger>
+            <TabsTrigger value="why-voix">Why VOIX</TabsTrigger>
             <TabsTrigger value="features">Features</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="use-cases">Use Cases</TabsTrigger>
+            <TabsTrigger value="footer">Footer</TabsTrigger>
           </TabsList>
           <TabsContent value="hero"><HeroEditor /></TabsContent>
+          <TabsContent value="why-voix"><WhyVoixEditor /></TabsContent>
           <TabsContent value="features"><FeaturesEditor /></TabsContent>
           <TabsContent value="team"><TeamEditor /></TabsContent>
+          <TabsContent value="use-cases"><UseCasesEditor /></TabsContent>
+          <TabsContent value="footer"><FooterEditor /></TabsContent>
         </Tabs>
       </div>
     </div>
