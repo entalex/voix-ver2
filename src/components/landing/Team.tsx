@@ -11,25 +11,26 @@ const Team = () => {
           {teamSection.heading}
         </h2>
 
+        {/* Banner image — all 4 corners rounded */}
         <div className="rounded-xl overflow-hidden">
-          <div className="w-full aspect-[21/9] bg-muted flex items-center justify-center overflow-hidden">
+          <div className="w-full aspect-[21/9] bg-muted flex items-center justify-center">
             {teamSection.bannerImageUrl ? (
               <img
                 src={teamSection.bannerImageUrl}
                 alt="Team Banner"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-xl"
               />
             ) : (
               <span className="text-muted-foreground text-lg">{teamSection.bannerLabel}</span>
             )}
           </div>
+        </div>
 
-          {/* Text Bar — same width as banner */}
-          <div className="w-full px-6 py-5" style={{ backgroundColor: "#F8F9FA" }}>
-            <p className="text-center text-muted-foreground text-base md:text-lg leading-relaxed">
-              {teamSection.barText || "Our mission is to empower teams with voice intelligence."}
-            </p>
-          </div>
+        {/* Text Bar — separated with small gap so bottom corners stay visible */}
+        <div className="mt-1 rounded-xl w-full px-6 py-5" style={{ backgroundColor: "#F8F9FA" }}>
+          <p className="text-center text-muted-foreground text-base md:text-lg leading-relaxed">
+            {teamSection.barText || "Our mission is to empower teams with voice intelligence."}
+          </p>
         </div>
 
       </div>
