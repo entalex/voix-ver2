@@ -72,7 +72,7 @@ export function useDeleteFeature() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
-    onError: (err: Error) => toast({ title: "Error deleting feature", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => { console.error(err); toast({ title: "Error deleting feature", description: "An error occurred. Please try again.", variant: "destructive" }); },
   });
 }
 
