@@ -97,7 +97,8 @@ const TeamEditor = () => {
       setTeamSection({ ...teamSection, bannerImageUrl: publicUrl });
       toast({ title: "Team banner uploaded!" });
     } catch (err) {
-      toast({ title: "Upload failed", description: String(err), variant: "destructive" });
+      console.error(err);
+      toast({ title: "Upload failed", description: "An error occurred. Please try again.", variant: "destructive" });
     } finally {
       setUploadingBanner(false);
     }

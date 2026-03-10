@@ -95,6 +95,6 @@ export function useUploadFeatureImage() {
 
       return urlData.publicUrl;
     },
-    onError: (err: Error) => toast({ title: "Upload failed", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => { console.error(err); toast({ title: "Upload failed", description: "An error occurred. Please try again.", variant: "destructive" }); },
   });
 }

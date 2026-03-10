@@ -33,7 +33,8 @@ const UseCasesEditor = () => {
       setUseCases(draft);
       toast({ title: "Use Cases section updated!" });
     } catch (err) {
-      toast({ title: "Save failed", description: String(err), variant: "destructive" });
+      console.error(err);
+      toast({ title: "Save failed", description: "An error occurred. Please try again.", variant: "destructive" });
     } finally {
       setSaving(false);
     }

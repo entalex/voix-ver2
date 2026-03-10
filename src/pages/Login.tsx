@@ -19,10 +19,25 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      toast({ title: "Login failed", description: "Invalid credentials. Please try again.", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
+    // Verify admin role before granting access
+    const { data: role } = await supabase
+      .from("user_roles")
+      .select("id")
+      .eq("user_id", authData.user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (!role) {
+      await supabase.auth.signOut();
+      toast({ title: "Access denied", description: "You do not have admin privileges.", variant: "destructive" });
       setLoading(false);
       return;
     }
