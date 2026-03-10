@@ -39,7 +39,8 @@ const WhyVoixEditor = () => {
       setWhyVoix(draft);
       toast({ title: "Why VOIX section updated!" });
     } catch (err) {
-      toast({ title: "Save failed", description: String(err), variant: "destructive" });
+      console.error(err);
+      toast({ title: "Save failed", description: "An error occurred. Please try again.", variant: "destructive" });
     } finally {
       setSaving(false);
     }

@@ -58,7 +58,7 @@ export function useUpsertFeature() {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
-    onError: (err: Error) => toast({ title: "Error saving feature", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => { console.error(err); toast({ title: "Error saving feature", description: "An error occurred. Please try again.", variant: "destructive" }); },
   });
 }
 
@@ -72,7 +72,7 @@ export function useDeleteFeature() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
-    onError: (err: Error) => toast({ title: "Error deleting feature", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => { console.error(err); toast({ title: "Error deleting feature", description: "An error occurred. Please try again.", variant: "destructive" }); },
   });
 }
 
@@ -95,6 +95,6 @@ export function useUploadFeatureImage() {
 
       return urlData.publicUrl;
     },
-    onError: (err: Error) => toast({ title: "Upload failed", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => { console.error(err); toast({ title: "Upload failed", description: "An error occurred. Please try again.", variant: "destructive" }); },
   });
 }
