@@ -58,7 +58,7 @@ export function useUpsertFeature() {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
-    onError: (err: Error) => toast({ title: "Error saving feature", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => { console.error(err); toast({ title: "Error saving feature", description: "An error occurred. Please try again.", variant: "destructive" }); },
   });
 }
 
