@@ -43,9 +43,11 @@ const Contact = () => {
           </div>
           <Input name="country" value={form.country} onChange={handleChange} maxLength={100} placeholder="Country" />
           <Textarea name="message" value={form.message} onChange={handleChange} maxLength={1000} placeholder="What information you want to share with us?" rows={4} />
-          <Button type="submit" className="w-full rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90 py-6 text-lg">
-            Send
-          </Button>
+          <div className="flex justify-center">
+            <Button type="submit" className="rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90 px-8 py-6 text-lg">
+              Send
+            </Button>
+          </div>
         </form>
       </div>
     </section>
