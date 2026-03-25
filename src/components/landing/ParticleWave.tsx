@@ -4,19 +4,17 @@ const NAVY = "#41506C";
 const AMBER = "#F1A900";
 const DARK = "#2a3444";
 const LINE_COLOR = [120, 130, 145];
-const CONNECTION_DIST = 48;
-const PARTICLE_COUNT = 600;
 const AMBER_RATIO = 0.28;
-const WAVE_SPEED = 0.004;
+const WAVE_SPEED = 0.007;
 
 interface Dot {
   x: number;
   y: number;
-  basePhase: number;
   radius: number;
   color: string;
-  bandOffset: number; // offset within the wave band thickness
+  bandOffset: number;
   opacity: number;
+  phaseOffset: number;
 }
 
 const ParticleWave = () => {
@@ -24,6 +22,7 @@ const ParticleWave = () => {
   const animRef = useRef<number>(0);
   const time = useRef(0);
   const dots = useRef<Dot[]>([]);
+  const isMobile = useRef(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -35,8 +34,10 @@ const ParticleWave = () => {
     let h = 0;
 
     const buildDots = () => {
+      isMobile.current = w < 600;
+      const count = isMobile.current ? 250 : 600;
       const arr: Dot[] = [];
-      for (let i = 0; i < PARTICLE_COUNT; i++) {
+      for (let i = 0; i < count; i++) {
         const rand = Math.random();
         let color: string;
         if (rand < AMBER_RATIO) {
@@ -50,11 +51,11 @@ const ParticleWave = () => {
         arr.push({
           x: 0,
           y: 0,
-          basePhase: (i / PARTICLE_COUNT) * Math.PI * 2 * 5 + Math.random() * 0.8,
-          radius: 1.5 + Math.random() * 2.2,
+          radius: isMobile.current ? 1.8 + Math.random() * 1.5 : 1.5 + Math.random() * 2.2,
           color,
-          bandOffset: (Math.random() - 0.5) * 2, // -1 to 1
+          bandOffset: (Math.random() - 0.5) * 2,
           opacity: 0.55 + Math.random() * 0.45,
+          phaseOffset: Math.random() * Math.PI * 2,
         });
       }
       dots.current = arr;
@@ -82,46 +83,47 @@ const ParticleWave = () => {
       const t = time.current;
       const centerY = h * 0.5;
       const pts = dots.current;
+      const mobile = isMobile.current;
+      const connDist = mobile ? 65 : 48;
       const extendW = w + 80;
 
-      // Position each dot along the wave
       for (let i = 0; i < pts.length; i++) {
         const p = pts[i];
-        // Distribute dots across width, scrolling rightward
-        const rawX = (i / pts.length) * extendW + t * 60;
+        // Distribute and scroll right
+        const rawX = (i / pts.length) * extendW + t * 80;
         p.x = ((rawX % extendW) + extendW) % extendW - 40;
 
-        const nx = p.x / w; // 0..1 normalized x
+        const nx = p.x / w;
 
-        // Main wave: composite of sine waves for organic shape
-        const wave1 = Math.sin(nx * Math.PI * 4.5 + t * 1.2) * 0.6;
-        const wave2 = Math.sin(nx * Math.PI * 3.0 + t * 0.7 + 1.0) * 0.4;
-        const wave3 = Math.sin(nx * Math.PI * 6.0 + t * 1.8 + 2.5) * 0.25;
-        const mainWave = wave1 + wave2 + wave3;
+        // Composite wave with varying frequencies for unique shape
+        const wave1 = Math.sin(nx * Math.PI * 4.5 + t * 1.2) * 0.55;
+        const wave2 = Math.sin(nx * Math.PI * 2.8 + t * 0.9 + 1.0) * 0.35;
+        const wave3 = Math.sin(nx * Math.PI * 7.0 + t * 2.0 + 2.5) * 0.15;
+        const wave4 = Math.sin(nx * Math.PI * 1.5 + t * 0.5 + p.phaseOffset * 0.3) * 0.2;
+        const mainWave = wave1 + wave2 + wave3 + wave4;
 
-        // Amplitude envelope - larger in center, tapering at edges
-        const edgeFade = Math.sin(nx * Math.PI);
-        const amplitude = h * 0.32 * edgeFade;
+        // Edge fade
+        const edgeFade = Math.sin(Math.max(0, Math.min(1, nx)) * Math.PI);
+        const amplitude = h * (mobile ? 0.28 : 0.32) * edgeFade;
 
-        // Band thickness - how wide the ribbon is at this point
-        const thickness = h * 0.06 + Math.abs(mainWave) * h * 0.04;
+        // Band thickness
+        const thickness = h * (mobile ? 0.04 : 0.055) + Math.abs(mainWave) * h * 0.03;
 
-        // Position within the band
         p.y = centerY + mainWave * amplitude + p.bandOffset * thickness;
       }
 
-      // Draw connections - the mesh network
+      // Draw connections
       ctx.lineWidth = 0.5;
       for (let i = 0; i < pts.length; i++) {
         for (let j = i + 1; j < pts.length; j++) {
           const dx = pts[i].x - pts[j].x;
-          if (dx > CONNECTION_DIST || dx < -CONNECTION_DIST) continue;
+          if (dx > connDist || dx < -connDist) continue;
           const dy = pts[i].y - pts[j].y;
-          if (dy > CONNECTION_DIST || dy < -CONNECTION_DIST) continue;
+          if (dy > connDist || dy < -connDist) continue;
           const d2 = dx * dx + dy * dy;
-          if (d2 < CONNECTION_DIST * CONNECTION_DIST) {
+          if (d2 < connDist * connDist) {
             const dist = Math.sqrt(d2);
-            const alpha = (1 - dist / CONNECTION_DIST) * 0.18;
+            const alpha = (1 - dist / connDist) * 0.16;
             ctx.strokeStyle = `rgba(${LINE_COLOR[0]},${LINE_COLOR[1]},${LINE_COLOR[2]},${alpha})`;
             ctx.beginPath();
             ctx.moveTo(pts[i].x, pts[i].y);
