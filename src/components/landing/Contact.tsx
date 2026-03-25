@@ -40,6 +40,8 @@ const Contact = () => {
             organization: trimmed.organization,
             country: trimmed.country,
             message: trimmed.message,
+            autoReplySubject: contact.autoReplySubject,
+            autoReplyMessage: contact.autoReplyMessage,
           },
         });
       }
