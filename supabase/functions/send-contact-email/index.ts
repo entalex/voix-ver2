@@ -30,8 +30,7 @@ serve(async (req) => {
   try {
     const body = await req.json();
     const {
-      recipientEmail, senderEmail, organization, country, message,
-      autoReplySubject, autoReplyMessage,
+      senderEmail, organization, country, message,
       website_url_check, turnstileToken,
     } = body;
 

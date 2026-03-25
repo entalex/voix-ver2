@@ -79,13 +79,10 @@ const Contact = () => {
     try {
       const res = await supabase.functions.invoke("send-contact-email", {
         body: {
-          recipientEmail: contact.recipientEmail,
           senderEmail: trimmed.email,
           organization: trimmed.organization,
           country: trimmed.country,
           message: trimmed.message,
-          autoReplySubject: contact.autoReplySubject,
-          autoReplyMessage: contact.autoReplyMessage,
           website_url_check: honeypot,
           turnstileToken,
         },
