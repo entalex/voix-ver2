@@ -70,7 +70,7 @@ const Contact = () => {
       return;
     }
 
-    if (!turnstileToken) {
+    if (turnstileEnabled && !turnstileToken) {
       toast({ title: "Please complete the security check.", variant: "destructive" });
       return;
     }
