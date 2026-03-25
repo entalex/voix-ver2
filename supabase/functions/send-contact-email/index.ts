@@ -37,14 +37,19 @@ serve(async (req) => {
       );
     }
 
-    const SMTP_USER = Deno.env.get("SMTP_USER");
-    const SMTP_PASS = Deno.env.get("SMTP_PASS");
+    const smtpUser = Deno.env.get("SMTP_USER");
+    const smtpPass = Deno.env.get("SMTP_PASS");
 
-    if (!SMTP_USER || !SMTP_PASS) {
-      throw new Error("SMTP credentials are not configured");
+    if (!smtpUser || !smtpPass) {
+      console.error("SMTP_USER or SMTP_PASS environment variables are not set.");
+      return new Response(
+        JSON.stringify({ error: "Server configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const sanitize = (str: string) => str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const senderName = organization || senderEmail.split("@")[0];
 
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -60,39 +65,42 @@ serve(async (req) => {
       </div>
     `;
 
+    console.log("Attempting SMTP connection to smtp.gmail.com:465...");
+
     const client = new SMTPClient({
       connection: {
         hostname: "smtp.gmail.com",
         port: 465,
         tls: true,
         auth: {
-          username: SMTP_USER,
-          password: SMTP_PASS,
+          username: smtpUser,
+          password: smtpPass,
         },
       },
     });
 
-    const senderName = organization || senderEmail.split("@")[0];
+    console.log("Sending email...");
 
     await client.send({
-      from: SMTP_USER,
+      from: smtpUser,
       to: recipientEmail,
       replyTo: senderEmail,
-      subject: `New Contact Form Lead: ${senderName}`,
+      subject: `New Contact Form Lead: ${sanitize(senderName)}`,
       content: message,
       html: emailHtml,
     });
 
     await client.close();
+    console.log("Email sent successfully");
 
     return new Response(
-      JSON.stringify({ success: true, message: "Message sent successfully!" }),
+      JSON.stringify({ success: true, message: "Message Sent Successfully!" }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("Error sending email:", error.message || error);
     return new Response(
-      JSON.stringify({ error: "An error occurred processing your request" }),
+      JSON.stringify({ error: "Failed to send email. Please try again later." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
