@@ -35,7 +35,7 @@ const ParticleWave = () => {
 
     const buildDots = () => {
       isMobile.current = w < 600;
-      const count = isMobile.current ? 250 : 600;
+      const count = isMobile.current ? 375 : 600;
       const arr: Dot[] = [];
       for (let i = 0; i < count; i++) {
         const rand = Math.random();
@@ -123,7 +123,7 @@ const ParticleWave = () => {
           const d2 = dx * dx + dy * dy;
           if (d2 < connDist * connDist) {
             const dist = Math.sqrt(d2);
-            const alpha = (1 - dist / connDist) * 0.16;
+            const alpha = (1 - dist / connDist) * (mobile ? 0.08 : 0.16);
             ctx.strokeStyle = `rgba(${LINE_COLOR[0]},${LINE_COLOR[1]},${LINE_COLOR[2]},${alpha})`;
             ctx.beginPath();
             ctx.moveTo(pts[i].x, pts[i].y);
