@@ -1,24 +1,23 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useLandingData } from "@/context/LandingDataContext";
 
 const Team = () => {
-  const { teamMembers, teamSection } = useLandingData();
+  const { teamSection } = useLandingData();
 
   return (
-    <section id="team" className="py-16 md:py-24 bg-muted/30">
-      <div className="max-w-[1200px] mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12">
+    <section id="team" className="py-16x md:py-20x">
+      <div className="max-w-[1200px] mx-auto px-4x">
+        <h2 className="text-3xl md:text-4xl font-extrabold text-foreground text-center mb-10x">
           {teamSection.heading}
         </h2>
 
-        {/* Banner image — all 4 corners rounded */}
-        <div className="rounded-xl overflow-hidden">
+        {/* Banner image */}
+        <div className="glass-card overflow-hidden">
           <div className="w-full aspect-[21/9] bg-muted flex items-center justify-center">
             {teamSection.bannerImageUrl ? (
               <img
                 src={teamSection.bannerImageUrl}
                 alt="Team Banner"
-                className="w-full h-full object-cover rounded-xl"
+                className="w-full h-full object-cover"
               />
             ) : (
               <span className="text-muted-foreground text-lg">{teamSection.bannerLabel}</span>
@@ -26,13 +25,12 @@ const Team = () => {
           </div>
         </div>
 
-        {/* Text Bar — separated with small gap so bottom corners stay visible */}
-        <div className="mt-1 rounded-xl w-full px-6 py-5" style={{ backgroundColor: "#F8F9FA" }}>
+        {/* Text Bar */}
+        <div className="glass-card mt-2x px-6x py-5x">
           <p className="text-center text-muted-foreground text-base md:text-lg leading-relaxed">
             {teamSection.barText || "Our mission is to empower teams with voice intelligence."}
           </p>
         </div>
-
       </div>
     </section>
   );
