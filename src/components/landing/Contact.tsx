@@ -7,7 +7,8 @@ import { useLandingData } from "@/context/LandingDataContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
-const TURNSTILE_SITE_KEY = "0x4AAAAAAA_PLACEHOLDER_SITE_KEY";
+// Set your real Cloudflare Turnstile site key here to enable the widget
+const TURNSTILE_SITE_KEY = "";
 
 const Contact = () => {
   const { toast } = useToast();
