@@ -1,47 +1,26 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect } from "react";
 
 const PRIMARY = "#41506C";
 const AMBER = "#F1A900";
-const WAVE_COUNT = 5;
-const DOTS_PER_WAVE = 80;
+const LINE_COLOR_BASE = [65, 80, 108]; // RGB of PRIMARY
+const CONNECTION_DIST = 55;
+const PARTICLE_COUNT = 350;
 
-interface WaveConfig {
-  amplitude: number;
-  frequency: number;
-  speed: number;
-  yOffset: number;
-  dotRadius: number;
-  opacity: number;
+interface Dot {
+  x: number;
+  y: number;
+  baseX: number;
+  radius: number;
+  isAmber: boolean;
+  waveIndex: number; // which vertical slice
+  tOffset: number;   // random phase offset
 }
 
 const ParticleWave = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const time = useRef(0);
-  const amberIndices = useRef<Set<number>>(new Set());
-
-  // Pre-select ~8% of all dots as amber
-  useEffect(() => {
-    const set = new Set<number>();
-    const total = WAVE_COUNT * DOTS_PER_WAVE;
-    const count = Math.floor(total * 0.08);
-    while (set.size < count) {
-      set.add(Math.floor(Math.random() * total));
-    }
-    amberIndices.current = set;
-  }, []);
-
-  const getWaveConfigs = useCallback((h: number): WaveConfig[] => {
-    const center = h * 0.5;
-    const spread = h * 0.12;
-    return [
-      { amplitude: h * 0.08, frequency: 0.012, speed: 0.6, yOffset: center - spread * 2, dotRadius: 2.2, opacity: 0.45 },
-      { amplitude: h * 0.11, frequency: 0.009, speed: 0.45, yOffset: center - spread, dotRadius: 2.8, opacity: 0.55 },
-      { amplitude: h * 0.14, frequency: 0.007, speed: 0.35, yOffset: center, dotRadius: 3.2, opacity: 0.6 },
-      { amplitude: h * 0.10, frequency: 0.010, speed: 0.5, yOffset: center + spread, dotRadius: 2.6, opacity: 0.5 },
-      { amplitude: h * 0.07, frequency: 0.013, speed: 0.65, yOffset: center + spread * 2, dotRadius: 2.0, opacity: 0.4 },
-    ];
-  }, []);
+  const dots = useRef<Dot[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -51,6 +30,23 @@ const ParticleWave = () => {
 
     let w = 0;
     let h = 0;
+
+    const buildDots = () => {
+      const arr: Dot[] = [];
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const baseX = Math.random() * (w + 60) - 30;
+        arr.push({
+          x: baseX,
+          y: 0,
+          baseX,
+          radius: 1.8 + Math.random() * 1.8,
+          isAmber: Math.random() < 0.1,
+          waveIndex: i,
+          tOffset: Math.random() * Math.PI * 2,
+        });
+      }
+      dots.current = arr;
+    };
 
     const resize = () => {
       const rect = canvas.parentElement!.getBoundingClientRect();
@@ -62,6 +58,7 @@ const ParticleWave = () => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       w = rect.width;
       h = rect.height;
+      buildDots();
     };
 
     resize();
@@ -69,43 +66,61 @@ const ParticleWave = () => {
 
     const draw = () => {
       ctx.clearRect(0, 0, w, h);
-      time.current += 0.012;
+      time.current += 0.006;
       const t = time.current;
-      const waves = getWaveConfigs(h);
+      const centerY = h * 0.5;
+      const pts = dots.current;
 
-      let globalIdx = 0;
+      // Compute waveform envelope and position each dot
+      for (const p of pts) {
+        // Scroll x slowly left-to-right
+        const scrollX = p.baseX + t * 30;
+        p.x = ((scrollX % (w + 60)) + (w + 60)) % (w + 60) - 30;
 
-      for (let wi = 0; wi < waves.length; wi++) {
-        const wave = waves[wi];
-        const spacing = (w + 40) / DOTS_PER_WAVE;
+        // Sound waveform envelope: amplitude varies across x
+        const nx = p.x / w; // 0..1
+        const envelope =
+          Math.sin(nx * Math.PI * 3.5 + t * 0.8) * 0.7 +
+          Math.sin(nx * Math.PI * 5.2 + t * 0.5) * 0.5 +
+          Math.sin(nx * Math.PI * 1.8 + t * 1.2) * 0.4;
 
-        for (let i = 0; i < DOTS_PER_WAVE; i++) {
-          // Dots flow left to right by shifting x with time
-          const rawX = i * spacing - 20 + t * wave.speed * 60;
-          // Wrap within canvas width with buffer
-          const x = ((rawX % (w + 40)) + (w + 40)) % (w + 40) - 20;
+        const maxAmp = Math.abs(envelope) * h * 0.22 + h * 0.03;
 
-          const y =
-            wave.yOffset +
-            Math.sin(x * wave.frequency + t * wave.speed * 2) * wave.amplitude +
-            Math.sin(x * wave.frequency * 1.8 + t * wave.speed * 1.3) * wave.amplitude * 0.3;
+        // Each dot gets a y within the envelope
+        const localPhase = p.tOffset + nx * 8 + t * 0.4;
+        const ySpread = (Math.sin(localPhase) * 0.6 + Math.sin(localPhase * 2.3) * 0.4);
+        p.y = centerY + ySpread * maxAmp;
+      }
 
-          const isAmber = amberIndices.current.has(globalIdx);
-          const color = isAmber ? AMBER : PRIMARY;
-          const alpha = isAmber ? wave.opacity + 0.25 : wave.opacity;
-          const radius = isAmber ? wave.dotRadius * 1.15 : wave.dotRadius;
-
-          ctx.beginPath();
-          ctx.arc(x, y, radius, 0, Math.PI * 2);
-          ctx.fillStyle = color;
-          ctx.globalAlpha = alpha;
-          ctx.fill();
-
-          globalIdx++;
+      // Draw connections
+      ctx.lineWidth = 0.6;
+      for (let i = 0; i < pts.length; i++) {
+        for (let j = i + 1; j < pts.length; j++) {
+          const dx = pts[i].x - pts[j].x;
+          const dy = pts[i].y - pts[j].y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < CONNECTION_DIST * CONNECTION_DIST) {
+            const dist = Math.sqrt(d2);
+            const alpha = (1 - dist / CONNECTION_DIST) * 0.12;
+            ctx.strokeStyle = `rgba(${LINE_COLOR_BASE[0]},${LINE_COLOR_BASE[1]},${LINE_COLOR_BASE[2]},${alpha})`;
+            ctx.beginPath();
+            ctx.moveTo(pts[i].x, pts[i].y);
+            ctx.lineTo(pts[j].x, pts[j].y);
+            ctx.stroke();
+          }
         }
       }
 
+      // Draw dots
+      for (const p of pts) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.isAmber ? AMBER : PRIMARY;
+        ctx.globalAlpha = p.isAmber ? 0.85 : 0.6;
+        ctx.fill();
+      }
       ctx.globalAlpha = 1;
+
       animRef.current = requestAnimationFrame(draw);
     };
 
@@ -115,7 +130,7 @@ const ParticleWave = () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener("resize", resize);
     };
-  }, [getWaveConfigs]);
+  }, []);
 
   return (
     <canvas
