@@ -88,6 +88,21 @@ const ContactEditor = () => {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader><CardTitle>Auto-Reply to User</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>Auto-Reply Subject</Label>
+            <Input value={draft.autoReplySubject} onChange={(e) => update("autoReplySubject", e.target.value)} maxLength={200} className="mt-1" placeholder="Thank you for contacting us!" />
+          </div>
+          <div>
+            <Label>Auto-Reply Message</Label>
+            <Textarea value={draft.autoReplyMessage} onChange={(e) => update("autoReplyMessage", e.target.value)} maxLength={2000} className="mt-1" placeholder="We have received your message and will get back to you shortly." rows={4} />
+            <p className="text-xs text-muted-foreground mt-1">This message will be sent automatically to the user after they submit the contact form.</p>
+          </div>
+        </CardContent>
+      </Card>
+
       <Button onClick={save} disabled={saving} className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
         {saving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</> : "Save Contact"}
       </Button>

@@ -66,6 +66,8 @@ export interface ContactData {
   messageLabel: string;
   buttonText: string;
   recipientEmail: string;
+  autoReplySubject: string;
+  autoReplyMessage: string;
 }
 
 interface LandingDataState {
@@ -122,6 +124,8 @@ const defaultContactData: ContactData = {
   messageLabel: "What information you want to share with us?",
   buttonText: "Send",
   recipientEmail: "",
+  autoReplySubject: "Thank you for contacting us!",
+  autoReplyMessage: "We have received your message and will get back to you shortly.",
 };
 
 const LandingDataContext = createContext<LandingDataState | undefined>(undefined);

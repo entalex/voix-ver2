@@ -43,7 +43,7 @@ const Contact = () => {
           },
         });
       }
-      toast({ title: "Message Sent Successfully!", description: "We'll get back to you shortly." });
+      toast({ title: "Thank you!", description: "A confirmation has been sent to your email." });
       setForm({ email: "", organization: "", country: "", message: "" });
     } catch (err) {
       console.error(err);
