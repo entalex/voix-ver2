@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import FeaturesEditor from "@/components/admin/FeaturesEditor";
 import WhyVoixEditor from "@/components/admin/WhyVoixEditor";
 import UseCasesEditor from "@/components/admin/UseCasesEditor";
+import ContactEditor from "@/components/admin/ContactEditor";
 import FooterEditor from "@/components/admin/FooterEditor";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -201,14 +202,16 @@ const Admin = () => {
             <TabsTrigger value="features">Features</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="use-cases">Use Cases</TabsTrigger>
-            <TabsTrigger value="footer">Footer</TabsTrigger>
-          </TabsList>
-          <TabsContent value="hero"><HeroEditor /></TabsContent>
-          <TabsContent value="why-voix"><WhyVoixEditor /></TabsContent>
-          <TabsContent value="features"><FeaturesEditor /></TabsContent>
-          <TabsContent value="team"><TeamEditor /></TabsContent>
-          <TabsContent value="use-cases"><UseCasesEditor /></TabsContent>
-          <TabsContent value="footer"><FooterEditor /></TabsContent>
+             <TabsTrigger value="footer">Footer</TabsTrigger>
+              <TabsTrigger value="contact">Contact Us</TabsTrigger>
+            </TabsList>
+            <TabsContent value="hero"><HeroEditor /></TabsContent>
+            <TabsContent value="why-voix"><WhyVoixEditor /></TabsContent>
+            <TabsContent value="features"><FeaturesEditor /></TabsContent>
+            <TabsContent value="team"><TeamEditor /></TabsContent>
+            <TabsContent value="use-cases"><UseCasesEditor /></TabsContent>
+            <TabsContent value="footer"><FooterEditor /></TabsContent>
+            <TabsContent value="contact"><ContactEditor /></TabsContent>
         </Tabs>
       </div>
     </div>
