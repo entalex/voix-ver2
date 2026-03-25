@@ -13,24 +13,24 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b border-border" style={{ background: "hsla(0,0%,0.4%,0.85)" }}>
-      <div className="max-w-[1200px] mx-auto flex items-center justify-between h-16 px-4x">
-        <a href="#" className="text-xl font-extrabold text-primary tracking-tight cyan-glow-text">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-b border-border">
+      <div className="container mx-auto flex items-center justify-between h-16 px-4">
+        <a href="#" className="text-2xl font-bold text-primary tracking-tight">
           VOIX
         </a>
 
         {/* Desktop */}
-        <div className="hidden md:flex items-center gap-8x">
+        <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200"
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
             >
               {link.label}
             </a>
           ))}
-          <Button className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 px-6x text-sm font-semibold">
+          <Button className="rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6">
             Request Demo
           </Button>
         </div>
@@ -38,23 +38,23 @@ const Navbar = () => {
         {/* Mobile */}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" className="text-foreground">
+            <Button variant="ghost" size="icon">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-64 bg-card border-border">
-            <div className="flex flex-col gap-6x mt-8x">
+          <SheetContent side="right" className="w-64">
+            <div className="flex flex-col gap-6 mt-8">
               {navLinks.map((link) => (
                 <a
                   key={link.href}
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="text-lg font-medium text-foreground hover:text-primary transition-colors"
+                  className="text-lg font-medium text-primary"
                 >
                   {link.label}
                 </a>
               ))}
-              <Button className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button className="rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90">
                 Request Demo
               </Button>
             </div>
