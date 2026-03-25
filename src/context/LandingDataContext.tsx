@@ -57,6 +57,17 @@ export interface FooterData {
   copyrightText: string;
 }
 
+export interface ContactData {
+  sectionTitle: string;
+  sectionDescription: string;
+  emailLabel: string;
+  organizationLabel: string;
+  countryLabel: string;
+  messageLabel: string;
+  buttonText: string;
+  recipientEmail: string;
+}
+
 interface LandingDataState {
   hero: HeroData;
   features: FeatureItem[];
@@ -65,6 +76,7 @@ interface LandingDataState {
   whyVoix: WhyVoixData;
   useCases: UseCaseCard[];
   footer: FooterData;
+  contact: ContactData;
   setHero: (hero: HeroData) => void;
   setFeatures: (features: FeatureItem[]) => void;
   setTeamMembers: (members: TeamMember[]) => void;
@@ -72,6 +84,7 @@ interface LandingDataState {
   setWhyVoix: (data: WhyVoixData) => void;
   setUseCases: (data: UseCaseCard[]) => void;
   setFooter: (data: FooterData) => void;
+  setContact: (data: ContactData) => void;
 }
 
 const defaultHero: HeroData = {
@@ -100,6 +113,17 @@ const defaultFooterData: FooterData = {
   copyrightText: "© 2026 VOIX. All rights reserved.",
 };
 
+const defaultContactData: ContactData = {
+  sectionTitle: "Contact Us",
+  sectionDescription: "",
+  emailLabel: "Your Email",
+  organizationLabel: "Organization Name",
+  countryLabel: "Country",
+  messageLabel: "What information you want to share with us?",
+  buttonText: "Send",
+  recipientEmail: "",
+};
+
 const LandingDataContext = createContext<LandingDataState | undefined>(undefined);
 
 export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
@@ -112,6 +136,7 @@ export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
   const [whyVoix, setWhyVoix] = useState<WhyVoixData>(defaultWhyVoixData);
   const [useCases, setUseCases] = useState<UseCaseCard[]>(defaultUseCasesData);
   const [footer, setFooter] = useState<FooterData>(defaultFooterData);
+  const [contact, setContact] = useState<ContactData>(defaultContactData);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -124,6 +149,7 @@ export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
           "why_voix",
           "use_cases",
           "footer",
+          "contact",
         ]);
       if (data) {
         const bannerRow = data.find((r) => r.key === "team_banner_url");
@@ -131,6 +157,7 @@ export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
         const whyRow = data.find((r) => r.key === "why_voix");
         const ucRow = data.find((r) => r.key === "use_cases");
         const footerRow = data.find((r) => r.key === "footer");
+        const contactRow = data.find((r) => r.key === "contact");
 
         setTeamSectionState((prev) => ({
           ...prev,
@@ -147,6 +174,9 @@ export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
         if (footerRow?.value) {
           try { setFooter(JSON.parse(footerRow.value)); } catch {}
         }
+        if (contactRow?.value) {
+          try { setContact(JSON.parse(contactRow.value)); } catch {}
+        }
       }
     };
     loadSettings();
@@ -159,8 +189,8 @@ export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
   return (
     <LandingDataContext.Provider
       value={{
-        hero, features, teamMembers, teamSection, whyVoix, useCases, footer,
-        setHero, setFeatures, setTeamMembers, setTeamSection, setWhyVoix, setUseCases, setFooter,
+        hero, features, teamMembers, teamSection, whyVoix, useCases, footer, contact,
+        setHero, setFeatures, setTeamMembers, setTeamSection, setWhyVoix, setUseCases, setFooter, setContact,
       }}
     >
       {children}
