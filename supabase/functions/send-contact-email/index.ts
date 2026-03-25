@@ -44,7 +44,7 @@ serve(async (req) => {
     }
 
     // --- Basic validation ---
-    if (!recipientEmail || !senderEmail || !message) {
+    if (!senderEmail || !message) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -52,7 +52,7 @@ serve(async (req) => {
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(senderEmail) || !emailRegex.test(recipientEmail)) {
+    if (!emailRegex.test(senderEmail)) {
       return new Response(
         JSON.stringify({ error: "Invalid email format" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
