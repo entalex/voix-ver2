@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      form_submission_logs: {
+        Row: {
+          created_at: string
+          id: string
+          ip_address: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_address: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_address?: string
+        }
+        Relationships: []
+      }
       product_features: {
         Row: {
           created_at: string
