@@ -30,8 +30,7 @@ serve(async (req) => {
   try {
     const body = await req.json();
     const {
-      recipientEmail, senderEmail, organization, country, message,
-      autoReplySubject, autoReplyMessage,
+      senderEmail, organization, country, message,
       website_url_check, turnstileToken,
     } = body;
 
@@ -45,7 +44,7 @@ serve(async (req) => {
     }
 
     // --- Basic validation ---
-    if (!recipientEmail || !senderEmail || !message) {
+    if (!senderEmail || !message) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -53,7 +52,7 @@ serve(async (req) => {
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(senderEmail) || !emailRegex.test(recipientEmail)) {
+    if (!emailRegex.test(senderEmail)) {
       return new Response(
         JSON.stringify({ error: "Invalid email format" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -132,6 +131,33 @@ serve(async (req) => {
 
     // Log this submission
     await supabaseAdmin.from("form_submission_logs").insert({ ip_address: clientIp });
+
+    // --- Read contact settings server-side ---
+    let recipientEmail = Deno.env.get("CONTACT_RECIPIENT_EMAIL") || "";
+    let autoReplySubject = "Thank you for contacting us!";
+    let autoReplyMessage = "";
+
+    const { data: contactRow } = await supabaseAdmin
+      .from("site_settings")
+      .select("value")
+      .eq("key", "contact")
+      .maybeSingle();
+
+    if (contactRow?.value) {
+      try {
+        const parsed = JSON.parse(contactRow.value);
+        if (parsed.recipientEmail) recipientEmail = parsed.recipientEmail;
+        if (parsed.autoReplySubject) autoReplySubject = parsed.autoReplySubject;
+        if (parsed.autoReplyMessage) autoReplyMessage = parsed.autoReplyMessage;
+      } catch {}
+    }
+
+    if (!recipientEmail) {
+      return new Response(
+        JSON.stringify({ error: "Server configuration error: no recipient configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // --- Send emails ---
     const smtpUser = Deno.env.get("SMTP_USER");
