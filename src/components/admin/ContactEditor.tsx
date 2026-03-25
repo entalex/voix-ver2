@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLandingData, ContactData } from "@/context/LandingDataContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -84,6 +85,21 @@ const ContactEditor = () => {
             <Label>Recipient Email</Label>
             <Input type="email" value={draft.recipientEmail} onChange={(e) => update("recipientEmail", e.target.value)} maxLength={255} className="mt-1" placeholder="admin@voix.cx" />
             <p className="text-xs text-muted-foreground mt-1">Form submissions will be sent to this email address.</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Auto-Reply to User</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>Auto-Reply Subject</Label>
+            <Input value={draft.autoReplySubject} onChange={(e) => update("autoReplySubject", e.target.value)} maxLength={200} className="mt-1" placeholder="Thank you for contacting us!" />
+          </div>
+          <div>
+            <Label>Auto-Reply Message</Label>
+            <Textarea value={draft.autoReplyMessage} onChange={(e) => update("autoReplyMessage", e.target.value)} maxLength={2000} className="mt-1" placeholder="We have received your message and will get back to you shortly." rows={4} />
+            <p className="text-xs text-muted-foreground mt-1">This message will be sent automatically to the user after they submit the contact form.</p>
           </div>
         </CardContent>
       </Card>

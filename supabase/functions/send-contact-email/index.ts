@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { recipientEmail, senderEmail, organization, country, message } = await req.json();
+    const { recipientEmail, senderEmail, organization, country, message, autoReplySubject, autoReplyMessage } = await req.json();
 
     if (!recipientEmail || !senderEmail || !message) {
       return new Response(
@@ -51,7 +51,8 @@ serve(async (req) => {
     const sanitize = (str: string) => str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const senderName = organization || senderEmail.split("@")[0];
 
-    const emailHtml = `
+    // --- Email 1: Notification to admin ---
+    const notificationHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #41506C;">New Contact Form Lead</h2>
         <table style="width: 100%; border-collapse: collapse;">
@@ -65,8 +66,6 @@ serve(async (req) => {
       </div>
     `;
 
-    console.log("Attempting SMTP connection to smtp.gmail.com:465...");
-
     const client = new SMTPClient({
       connection: {
         hostname: "smtp.gmail.com",
@@ -79,26 +78,60 @@ serve(async (req) => {
       },
     });
 
-    console.log("Sending email...");
+    let email1Error: string | null = null;
 
-    await client.send({
-      from: smtpUser,
-      to: recipientEmail,
-      replyTo: senderEmail,
-      subject: `New Contact Form Lead: ${sanitize(senderName)}`,
-      content: message,
-      html: emailHtml,
-    });
+    // Send Email 1 (to admin)
+    try {
+      console.log("Sending Email 1 (notification to admin)...");
+      await client.send({
+        from: smtpUser,
+        to: recipientEmail,
+        replyTo: senderEmail,
+        subject: `New Contact Form Lead: ${sanitize(senderName)}`,
+        content: message,
+        html: notificationHtml,
+      });
+      console.log("Email 1 sent successfully.");
+    } catch (err) {
+      email1Error = err.message || String(err);
+      console.error("Email 1 failed:", email1Error);
+    }
+
+    // --- Email 2: Auto-reply to user ---
+    if (autoReplyMessage) {
+      const replySubject = autoReplySubject || "Thank you for contacting us!";
+      const autoReplyHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #41506C;">${sanitize(replySubject)}</h2>
+          <p style="color: #374151; line-height: 1.6; white-space: pre-wrap;">${sanitize(autoReplyMessage)}</p>
+          <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 16px 0;" />
+          <p style="color: #9CA3AF; font-size: 12px;">This is an automated reply. Please do not respond to this email.</p>
+        </div>
+      `;
+
+      try {
+        console.log("Sending Email 2 (auto-reply to user)...");
+        await client.send({
+          from: smtpUser,
+          to: senderEmail,
+          subject: replySubject,
+          content: autoReplyMessage,
+          html: autoReplyHtml,
+        });
+        console.log("Email 2 sent successfully.");
+      } catch (err) {
+        console.error("Email 2 (auto-reply) failed:", err.message || err);
+      }
+    }
 
     await client.close();
-    console.log("Email sent successfully");
 
     return new Response(
-      JSON.stringify({ success: true, message: "Message Sent Successfully!" }),
+      JSON.stringify({ success: true, message: "Message Sent Successfully!", email1Error }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error sending email:", error.message || error);
+    console.error("Error:", error.message || error);
     return new Response(
       JSON.stringify({ error: "Failed to send email. Please try again later." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
