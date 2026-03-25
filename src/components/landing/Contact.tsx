@@ -7,7 +7,8 @@ import { useLandingData } from "@/context/LandingDataContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
-const TURNSTILE_SITE_KEY = "0x4AAAAAAA_PLACEHOLDER_SITE_KEY";
+// Set your real Cloudflare Turnstile site key here to enable the widget
+const TURNSTILE_SITE_KEY = "";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -18,8 +19,11 @@ const Contact = () => {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
 
+  const turnstileEnabled = !!TURNSTILE_SITE_KEY;
+
   useEffect(() => {
-    // Load Turnstile script
+    if (!turnstileEnabled) return;
+
     const scriptId = "cf-turnstile-script";
     if (!document.getElementById(scriptId)) {
       const script = document.createElement("script");
@@ -40,7 +44,6 @@ const Contact = () => {
       }
     };
 
-    // If script already loaded
     if ((window as any).turnstile && turnstileRef.current) {
       (window as any).turnstile.render(turnstileRef.current, {
         sitekey: TURNSTILE_SITE_KEY,
@@ -48,7 +51,7 @@ const Contact = () => {
         "expired-callback": () => setTurnstileToken(null),
       });
     }
-  }, []);
+  }, [turnstileEnabled]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -67,7 +70,7 @@ const Contact = () => {
       return;
     }
 
-    if (!turnstileToken) {
+    if (turnstileEnabled && !turnstileToken) {
       toast({ title: "Please complete the security check.", variant: "destructive" });
       return;
     }
