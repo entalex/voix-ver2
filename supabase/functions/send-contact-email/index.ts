@@ -122,7 +122,7 @@ serve(async (req) => {
 
     if (countError) {
       console.error("Rate limit check error:", countError);
-    } else if ((count ?? 0) >= 2) {
+    } else if ((count ?? 0) >= 5) {
       console.log(`Rate limit exceeded for IP: ${clientIp}, count: ${count}`);
       return new Response(
         JSON.stringify({ error: "Too many requests. Please try again later." }),
