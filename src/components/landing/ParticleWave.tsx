@@ -1,19 +1,22 @@
 import { useRef, useEffect } from "react";
 
-const PRIMARY = "#41506C";
+const NAVY = "#41506C";
 const AMBER = "#F1A900";
-const LINE_COLOR_BASE = [65, 80, 108]; // RGB of PRIMARY
-const CONNECTION_DIST = 55;
-const PARTICLE_COUNT = 350;
+const DARK = "#2a3444";
+const LINE_COLOR = [120, 130, 145];
+const CONNECTION_DIST = 48;
+const PARTICLE_COUNT = 600;
+const AMBER_RATIO = 0.28;
+const WAVE_SPEED = 0.004;
 
 interface Dot {
   x: number;
   y: number;
-  baseX: number;
+  basePhase: number;
   radius: number;
-  isAmber: boolean;
-  waveIndex: number; // which vertical slice
-  tOffset: number;   // random phase offset
+  color: string;
+  bandOffset: number; // offset within the wave band thickness
+  opacity: number;
 }
 
 const ParticleWave = () => {
@@ -34,15 +37,24 @@ const ParticleWave = () => {
     const buildDots = () => {
       const arr: Dot[] = [];
       for (let i = 0; i < PARTICLE_COUNT; i++) {
-        const baseX = Math.random() * (w + 60) - 30;
+        const rand = Math.random();
+        let color: string;
+        if (rand < AMBER_RATIO) {
+          color = AMBER;
+        } else if (rand < AMBER_RATIO + 0.35) {
+          color = NAVY;
+        } else {
+          color = DARK;
+        }
+
         arr.push({
-          x: baseX,
+          x: 0,
           y: 0,
-          baseX,
-          radius: 1.8 + Math.random() * 1.8,
-          isAmber: Math.random() < 0.1,
-          waveIndex: i,
-          tOffset: Math.random() * Math.PI * 2,
+          basePhase: (i / PARTICLE_COUNT) * Math.PI * 2 * 5 + Math.random() * 0.8,
+          radius: 1.5 + Math.random() * 2.2,
+          color,
+          bandOffset: (Math.random() - 0.5) * 2, // -1 to 1
+          opacity: 0.55 + Math.random() * 0.45,
         });
       }
       dots.current = arr;
@@ -66,43 +78,51 @@ const ParticleWave = () => {
 
     const draw = () => {
       ctx.clearRect(0, 0, w, h);
-      time.current += 0.006;
+      time.current += WAVE_SPEED;
       const t = time.current;
       const centerY = h * 0.5;
       const pts = dots.current;
+      const extendW = w + 80;
 
-      // Compute waveform envelope and position each dot
-      for (const p of pts) {
-        // Scroll x slowly left-to-right
-        const scrollX = p.baseX + t * 30;
-        p.x = ((scrollX % (w + 60)) + (w + 60)) % (w + 60) - 30;
+      // Position each dot along the wave
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        // Distribute dots across width, scrolling rightward
+        const rawX = (i / pts.length) * extendW + t * 60;
+        p.x = ((rawX % extendW) + extendW) % extendW - 40;
 
-        // Sound waveform envelope: amplitude varies across x
-        const nx = p.x / w; // 0..1
-        const envelope =
-          Math.sin(nx * Math.PI * 3.5 + t * 0.8) * 0.7 +
-          Math.sin(nx * Math.PI * 5.2 + t * 0.5) * 0.5 +
-          Math.sin(nx * Math.PI * 1.8 + t * 1.2) * 0.4;
+        const nx = p.x / w; // 0..1 normalized x
 
-        const maxAmp = Math.abs(envelope) * h * 0.22 + h * 0.03;
+        // Main wave: composite of sine waves for organic shape
+        const wave1 = Math.sin(nx * Math.PI * 4.5 + t * 1.2) * 0.6;
+        const wave2 = Math.sin(nx * Math.PI * 3.0 + t * 0.7 + 1.0) * 0.4;
+        const wave3 = Math.sin(nx * Math.PI * 6.0 + t * 1.8 + 2.5) * 0.25;
+        const mainWave = wave1 + wave2 + wave3;
 
-        // Each dot gets a y within the envelope
-        const localPhase = p.tOffset + nx * 8 + t * 0.4;
-        const ySpread = (Math.sin(localPhase) * 0.6 + Math.sin(localPhase * 2.3) * 0.4);
-        p.y = centerY + ySpread * maxAmp;
+        // Amplitude envelope - larger in center, tapering at edges
+        const edgeFade = Math.sin(nx * Math.PI);
+        const amplitude = h * 0.32 * edgeFade;
+
+        // Band thickness - how wide the ribbon is at this point
+        const thickness = h * 0.06 + Math.abs(mainWave) * h * 0.04;
+
+        // Position within the band
+        p.y = centerY + mainWave * amplitude + p.bandOffset * thickness;
       }
 
-      // Draw connections
-      ctx.lineWidth = 0.6;
+      // Draw connections - the mesh network
+      ctx.lineWidth = 0.5;
       for (let i = 0; i < pts.length; i++) {
         for (let j = i + 1; j < pts.length; j++) {
           const dx = pts[i].x - pts[j].x;
+          if (dx > CONNECTION_DIST || dx < -CONNECTION_DIST) continue;
           const dy = pts[i].y - pts[j].y;
+          if (dy > CONNECTION_DIST || dy < -CONNECTION_DIST) continue;
           const d2 = dx * dx + dy * dy;
           if (d2 < CONNECTION_DIST * CONNECTION_DIST) {
             const dist = Math.sqrt(d2);
-            const alpha = (1 - dist / CONNECTION_DIST) * 0.12;
-            ctx.strokeStyle = `rgba(${LINE_COLOR_BASE[0]},${LINE_COLOR_BASE[1]},${LINE_COLOR_BASE[2]},${alpha})`;
+            const alpha = (1 - dist / CONNECTION_DIST) * 0.18;
+            ctx.strokeStyle = `rgba(${LINE_COLOR[0]},${LINE_COLOR[1]},${LINE_COLOR[2]},${alpha})`;
             ctx.beginPath();
             ctx.moveTo(pts[i].x, pts[i].y);
             ctx.lineTo(pts[j].x, pts[j].y);
@@ -115,8 +135,8 @@ const ParticleWave = () => {
       for (const p of pts) {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.isAmber ? AMBER : PRIMARY;
-        ctx.globalAlpha = p.isAmber ? 0.85 : 0.6;
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.opacity;
         ctx.fill();
       }
       ctx.globalAlpha = 1;
