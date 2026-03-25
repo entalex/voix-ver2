@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,7 +22,6 @@ serve(async (req) => {
       );
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(senderEmail) || !emailRegex.test(recipientEmail)) {
       return new Response(
@@ -30,7 +30,6 @@ serve(async (req) => {
       );
     }
 
-    // Validate lengths
     if (message.length > 1000 || senderEmail.length > 255) {
       return new Response(
         JSON.stringify({ error: "Input too long" }),
@@ -38,38 +37,60 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const SMTP_USER = Deno.env.get("SMTP_USER");
+    const SMTP_PASS = Deno.env.get("SMTP_PASS");
+
+    if (!SMTP_USER || !SMTP_PASS) {
+      throw new Error("SMTP credentials are not configured");
     }
 
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const sanitize = (str: string) => str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #41506C;">New Contact Form Submission</h2>
+        <h2 style="color: #41506C;">New Contact Form Lead</h2>
         <table style="width: 100%; border-collapse: collapse;">
-          <tr><td style="padding: 8px 0; font-weight: bold; color: #41506C;">From:</td><td style="padding: 8px 0;">${senderEmail}</td></tr>
-          ${organization ? `<tr><td style="padding: 8px 0; font-weight: bold; color: #41506C;">Organization:</td><td style="padding: 8px 0;">${organization}</td></tr>` : ""}
-          ${country ? `<tr><td style="padding: 8px 0; font-weight: bold; color: #41506C;">Country:</td><td style="padding: 8px 0;">${country}</td></tr>` : ""}
+          <tr><td style="padding: 8px 0; font-weight: bold; color: #41506C;">From:</td><td style="padding: 8px 0;">${sanitize(senderEmail)}</td></tr>
+          ${organization ? `<tr><td style="padding: 8px 0; font-weight: bold; color: #41506C;">Organization:</td><td style="padding: 8px 0;">${sanitize(organization)}</td></tr>` : ""}
+          ${country ? `<tr><td style="padding: 8px 0; font-weight: bold; color: #41506C;">Country:</td><td style="padding: 8px 0;">${sanitize(country)}</td></tr>` : ""}
         </table>
         <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 16px 0;" />
         <h3 style="color: #41506C;">Message:</h3>
-        <p style="color: #374151; line-height: 1.6; white-space: pre-wrap;">${message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+        <p style="color: #374151; line-height: 1.6; white-space: pre-wrap;">${sanitize(message)}</p>
       </div>
     `;
 
-    // Use Lovable AI to send the email via a simple approach
-    // For now, log the submission and return success
-    // Email sending requires email domain setup
-    console.log("Contact form submission:", { recipientEmail, senderEmail, organization, country, message: message.substring(0, 100) });
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp.gmail.com",
+        port: 465,
+        tls: true,
+        auth: {
+          username: SMTP_USER,
+          password: SMTP_PASS,
+        },
+      },
+    });
+
+    const senderName = organization || senderEmail.split("@")[0];
+
+    await client.send({
+      from: SMTP_USER,
+      to: recipientEmail,
+      replyTo: senderEmail,
+      subject: `New Contact Form Lead: ${senderName}`,
+      content: message,
+      html: emailHtml,
+    });
+
+    await client.close();
 
     return new Response(
-      JSON.stringify({ success: true, message: "Contact form submitted successfully" }),
+      JSON.stringify({ success: true, message: "Message sent successfully!" }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error processing contact form:", error);
+    console.error("Error sending email:", error);
     return new Response(
       JSON.stringify({ error: "An error occurred processing your request" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
