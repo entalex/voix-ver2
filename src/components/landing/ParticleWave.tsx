@@ -1,52 +1,46 @@
 import { useRef, useEffect, useCallback } from "react";
 
-interface Particle {
-  x: number;
-  y: number;
-  baseY: number;
-  vx: number;
-  vy: number;
-  radius: number;
-  isAmber: boolean;
-  phase1: number;
-  phase2: number;
-  phase3: number;
-}
-
 const PRIMARY = "#41506C";
 const AMBER = "#F1A900";
-const LINE_COLOR = "rgba(65, 80, 108, 0.06)";
-const PARTICLE_COUNT = 120;
-const CONNECTION_DIST = 100;
-const MOUSE_RADIUS = 120;
-const MOUSE_FORCE = 3;
+const WAVE_COUNT = 5;
+const DOTS_PER_WAVE = 80;
+
+interface WaveConfig {
+  amplitude: number;
+  frequency: number;
+  speed: number;
+  yOffset: number;
+  dotRadius: number;
+  opacity: number;
+}
 
 const ParticleWave = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const particles = useRef<Particle[]>([]);
-  const mouse = useRef({ x: -9999, y: -9999 });
   const animRef = useRef<number>(0);
   const time = useRef(0);
+  const amberIndices = useRef<Set<number>>(new Set());
 
-  const initParticles = useCallback((w: number, h: number) => {
-    const pts: Particle[] = [];
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      const x = Math.random() * w;
-      const baseY = h * 0.2 + Math.random() * h * 0.6;
-      pts.push({
-        x,
-        y: baseY,
-        baseY,
-        vx: 0,
-        vy: 0,
-        radius: 1.5 + Math.random() * 1.5,
-        isAmber: Math.random() < 0.1,
-        phase1: Math.random() * Math.PI * 2,
-        phase2: Math.random() * Math.PI * 2,
-        phase3: Math.random() * Math.PI * 2,
-      });
+  // Pre-select ~8% of all dots as amber
+  useEffect(() => {
+    const set = new Set<number>();
+    const total = WAVE_COUNT * DOTS_PER_WAVE;
+    const count = Math.floor(total * 0.08);
+    while (set.size < count) {
+      set.add(Math.floor(Math.random() * total));
     }
-    particles.current = pts;
+    amberIndices.current = set;
+  }, []);
+
+  const getWaveConfigs = useCallback((h: number): WaveConfig[] => {
+    const center = h * 0.5;
+    const spread = h * 0.12;
+    return [
+      { amplitude: h * 0.08, frequency: 0.012, speed: 0.6, yOffset: center - spread * 2, dotRadius: 2.2, opacity: 0.45 },
+      { amplitude: h * 0.11, frequency: 0.009, speed: 0.45, yOffset: center - spread, dotRadius: 2.8, opacity: 0.55 },
+      { amplitude: h * 0.14, frequency: 0.007, speed: 0.35, yOffset: center, dotRadius: 3.2, opacity: 0.6 },
+      { amplitude: h * 0.10, frequency: 0.010, speed: 0.5, yOffset: center + spread, dotRadius: 2.6, opacity: 0.5 },
+      { amplitude: h * 0.07, frequency: 0.013, speed: 0.65, yOffset: center + spread * 2, dotRadius: 2.0, opacity: 0.4 },
+    ];
   }, []);
 
   useEffect(() => {
@@ -55,6 +49,9 @@ const ParticleWave = () => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    let w = 0;
+    let h = 0;
+
     const resize = () => {
       const rect = canvas.parentElement!.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
@@ -62,89 +59,53 @@ const ParticleWave = () => {
       canvas.height = rect.height * dpr;
       canvas.style.width = `${rect.width}px`;
       canvas.style.height = `${rect.height}px`;
-      ctx.scale(dpr, dpr);
-      initParticles(rect.width, rect.height);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      w = rect.width;
+      h = rect.height;
     };
 
     resize();
     window.addEventListener("resize", resize);
 
-    const onMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      mouse.current.x = e.clientX - rect.left;
-      mouse.current.y = e.clientY - rect.top;
-    };
-    const onMouseLeave = () => {
-      mouse.current.x = -9999;
-      mouse.current.y = -9999;
-    };
-    canvas.addEventListener("mousemove", onMouseMove);
-    canvas.addEventListener("mouseleave", onMouseLeave);
-
     const draw = () => {
-      const w = canvas.width / (window.devicePixelRatio || 1);
-      const h = canvas.height / (window.devicePixelRatio || 1);
       ctx.clearRect(0, 0, w, h);
-      time.current += 0.008;
+      time.current += 0.012;
       const t = time.current;
-      const pts = particles.current;
+      const waves = getWaveConfigs(h);
 
-      // Update positions
-      for (const p of pts) {
-        const wave1 = Math.sin(p.x * 0.008 + t * 1.2 + p.phase1) * 25;
-        const wave2 = Math.sin(p.x * 0.012 + t * 0.8 + p.phase2) * 18;
-        const wave3 = Math.sin(p.x * 0.005 + t * 1.6 + p.phase3) * 12;
-        const targetY = p.baseY + wave1 + wave2 + wave3;
+      let globalIdx = 0;
 
-        // Mouse repulsion
-        const dx = p.x - mouse.current.x;
-        const dy = p.y - mouse.current.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < MOUSE_RADIUS && dist > 0) {
-          const force = (MOUSE_RADIUS - dist) / MOUSE_RADIUS * MOUSE_FORCE;
-          p.vx += (dx / dist) * force;
-          p.vy += (dy / dist) * force;
-        }
+      for (let wi = 0; wi < waves.length; wi++) {
+        const wave = waves[wi];
+        const spacing = (w + 40) / DOTS_PER_WAVE;
 
-        p.vy += (targetY - p.y) * 0.04;
-        p.vx *= 0.92;
-        p.vy *= 0.92;
-        p.x += p.vx;
-        p.y += p.vy;
+        for (let i = 0; i < DOTS_PER_WAVE; i++) {
+          // Dots flow left to right by shifting x with time
+          const rawX = i * spacing - 20 + t * wave.speed * 60;
+          // Wrap within canvas width with buffer
+          const x = ((rawX % (w + 40)) + (w + 40)) % (w + 40) - 20;
 
-        // Wrap horizontally
-        if (p.x < -10) p.x = w + 10;
-        if (p.x > w + 10) p.x = -10;
-      }
+          const y =
+            wave.yOffset +
+            Math.sin(x * wave.frequency + t * wave.speed * 2) * wave.amplitude +
+            Math.sin(x * wave.frequency * 1.8 + t * wave.speed * 1.3) * wave.amplitude * 0.3;
 
-      // Draw connections
-      ctx.lineWidth = 0.5;
-      for (let i = 0; i < pts.length; i++) {
-        for (let j = i + 1; j < pts.length; j++) {
-          const dx = pts[i].x - pts[j].x;
-          const dy = pts[i].y - pts[j].y;
-          const d = dx * dx + dy * dy;
-          if (d < CONNECTION_DIST * CONNECTION_DIST) {
-            const alpha = 1 - Math.sqrt(d) / CONNECTION_DIST;
-            ctx.strokeStyle = `rgba(65, 80, 108, ${alpha * 0.08})`;
-            ctx.beginPath();
-            ctx.moveTo(pts[i].x, pts[i].y);
-            ctx.lineTo(pts[j].x, pts[j].y);
-            ctx.stroke();
-          }
+          const isAmber = amberIndices.current.has(globalIdx);
+          const color = isAmber ? AMBER : PRIMARY;
+          const alpha = isAmber ? wave.opacity + 0.25 : wave.opacity;
+          const radius = isAmber ? wave.dotRadius * 1.15 : wave.dotRadius;
+
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.globalAlpha = alpha;
+          ctx.fill();
+
+          globalIdx++;
         }
       }
 
-      // Draw particles
-      for (const p of pts) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.isAmber ? AMBER : PRIMARY;
-        ctx.globalAlpha = p.isAmber ? 0.9 : 0.7;
-        ctx.fill();
-      }
       ctx.globalAlpha = 1;
-
       animRef.current = requestAnimationFrame(draw);
     };
 
@@ -153,16 +114,14 @@ const ParticleWave = () => {
     return () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener("resize", resize);
-      canvas.removeEventListener("mousemove", onMouseMove);
-      canvas.removeEventListener("mouseleave", onMouseLeave);
     };
-  }, [initParticles]);
+  }, [getWaveConfigs]);
 
   return (
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full"
-      style={{ pointerEvents: "auto" }}
+      style={{ pointerEvents: "none" }}
     />
   );
 };
