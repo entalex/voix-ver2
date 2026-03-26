@@ -148,6 +148,7 @@ export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
         .from("site_settings")
         .select("key, value")
         .in("key", [
+          "hero",
           "team_banner_url",
           "team_description",
           "why_voix",
@@ -156,12 +157,17 @@ export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
           "contact",
         ]);
       if (data) {
+        const heroRow = data.find((r) => r.key === "hero");
         const bannerRow = data.find((r) => r.key === "team_banner_url");
         const descRow = data.find((r) => r.key === "team_description");
         const whyRow = data.find((r) => r.key === "why_voix");
         const ucRow = data.find((r) => r.key === "use_cases");
         const footerRow = data.find((r) => r.key === "footer");
         const contactRow = data.find((r) => r.key === "contact");
+
+        if (heroRow?.value) {
+          try { setHero(JSON.parse(heroRow.value)); } catch {}
+        }
 
         setTeamSectionState((prev) => ({
           ...prev,
