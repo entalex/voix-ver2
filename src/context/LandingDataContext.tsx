@@ -173,7 +173,6 @@ const defaultTeamSectionData: TeamSectionData = {
   heading: bi(defaultTeamSection.heading),
   bannerLabel: defaultTeamSection.bannerLabel,
   barText: bi(defaultTeamSection.barText),
-  bannerImageUrl: defaultTeamSection.bannerImageUrl,
 };
 
 const LandingDataContext = createContext<LandingDataState | undefined>(undefined);
