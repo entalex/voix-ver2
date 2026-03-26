@@ -9,8 +9,26 @@ const navLinks = [
   { label: "Use Cases", href: "#use-cases" },
 ];
 
+const scrollToSection = (id: string) => {
+  if (id === "top") {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  }
+};
+
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+
+  const handleNavClick = (href: string) => {
+    setOpen(false);
+    setTimeout(() => scrollToSection(href.replace("#", "")), 150);
+  };
+
+  const handleHomeClick = () => {
+    setOpen(false);
+    setTimeout(() => scrollToSection("top"), 150);
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-b border-border">
@@ -49,15 +67,21 @@ const Navbar = () => {
           >
             <div className="flex flex-col h-full">
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-white/15">
+              <div
+                onClick={handleHomeClick}
+                className="flex items-center justify-between px-5 py-4 border-b border-white/15 cursor-pointer"
+              >
                 <span className="text-xl font-bold text-white tracking-tight">VOIX</span>
                 <div className="flex items-center gap-3">
-                  <button className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors">
+                  <button
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors"
+                  >
                     <Globe className="h-4 w-4" />
                     <span className="text-sm font-medium">Eng</span>
                   </button>
                   <button
-                    onClick={() => setOpen(false)}
+                    onClick={(e) => { e.stopPropagation(); setOpen(false); }}
                     className="text-white/70 hover:text-white transition-colors"
                   >
                     <X className="h-5 w-5" />
@@ -66,18 +90,20 @@ const Navbar = () => {
               </div>
 
               {/* Nav Links */}
-              <div className="flex-1 flex flex-col pt-4">
+              <div className="flex flex-col pt-4">
                 {navLinks.map((link) => (
-                  <a
+                  <button
                     key={link.href}
-                    href={link.href}
-                    onClick={() => setOpen(false)}
-                    className="block px-6 py-5 text-lg font-medium text-white/90 hover:text-white border-b border-white/10 transition-colors text-right"
+                    onClick={() => handleNavClick(link.href)}
+                    className="block w-full px-6 py-5 text-lg font-medium text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15 border-b border-white/10 transition-colors text-right"
                   >
                     {link.label}
-                  </a>
+                  </button>
                 ))}
               </div>
+
+              {/* Empty space → Home */}
+              <div className="flex-1 cursor-pointer" onClick={handleHomeClick} />
 
               {/* Footer: CTA + Socials */}
               <div className="px-6 pb-8 space-y-6">
@@ -88,14 +114,11 @@ const Navbar = () => {
                   Request Demo
                 </Button>
                 <div className="flex items-center gap-4">
-                  {[
-                    { label: "Facebook", svg: "M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" },
-                    { label: "Instagram", svg: "" },
-                    { label: "YouTube", svg: "" },
-                  ].map((_, i) => (
+                  {[0, 1, 2].map((i) => (
                     <a
                       key={i}
                       href="#"
+                      onClick={(e) => e.stopPropagation()}
                       className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white/60 hover:text-white hover:border-white/60 transition-colors"
                     >
                       {i === 0 && (
