@@ -2,22 +2,18 @@ import { useState } from "react";
 import { useLandingData, ContactData } from "@/context/LandingDataContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import BilingualField from "./BilingualField";
 
 const ContactEditor = () => {
   const { contact, setContact } = useLandingData();
   const { toast } = useToast();
-  const [draft, setDraft] = useState<ContactData>(() => ({ ...contact }));
+  const [draft, setDraft] = useState<ContactData>(() => JSON.parse(JSON.stringify(contact)));
   const [saving, setSaving] = useState(false);
-
-  const update = (field: keyof ContactData, value: string) => {
-    setDraft((prev) => ({ ...prev, [field]: value }));
-  };
 
   const save = async () => {
     setSaving(true);
@@ -36,45 +32,28 @@ const ContactEditor = () => {
     }
   };
 
+  const update = (field: keyof ContactData, value: any) => {
+    setDraft((prev) => ({ ...prev, [field]: value }));
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader><CardTitle>Section Text</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Section Title</Label>
-            <Input value={draft.sectionTitle} onChange={(e) => update("sectionTitle", e.target.value)} maxLength={80} className="mt-1" />
-          </div>
-          <div>
-            <Label>Section Description</Label>
-            <Input value={draft.sectionDescription} onChange={(e) => update("sectionDescription", e.target.value)} maxLength={300} className="mt-1" placeholder="Optional subtitle below the title" />
-          </div>
+        <CardContent className="space-y-6">
+          <BilingualField label="Section Title" value={draft.sectionTitle} onChange={(v) => update("sectionTitle", v)} maxLength={80} />
+          <BilingualField label="Section Description" value={draft.sectionDescription} onChange={(v) => update("sectionDescription", v)} maxLength={300} />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader><CardTitle>Form Labels</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Email Field Label</Label>
-            <Input value={draft.emailLabel} onChange={(e) => update("emailLabel", e.target.value)} maxLength={60} className="mt-1" />
-          </div>
-          <div>
-            <Label>Organization Field Label</Label>
-            <Input value={draft.organizationLabel} onChange={(e) => update("organizationLabel", e.target.value)} maxLength={60} className="mt-1" />
-          </div>
-          <div>
-            <Label>Country Field Label</Label>
-            <Input value={draft.countryLabel} onChange={(e) => update("countryLabel", e.target.value)} maxLength={60} className="mt-1" />
-          </div>
-          <div>
-            <Label>Message Field Label</Label>
-            <Input value={draft.messageLabel} onChange={(e) => update("messageLabel", e.target.value)} maxLength={100} className="mt-1" />
-          </div>
-          <div>
-            <Label>Button Text</Label>
-            <Input value={draft.buttonText} onChange={(e) => update("buttonText", e.target.value)} maxLength={40} className="mt-1" />
-          </div>
+        <CardContent className="space-y-6">
+          <BilingualField label="Email Field Label" value={draft.emailLabel} onChange={(v) => update("emailLabel", v)} maxLength={60} />
+          <BilingualField label="Organization Field Label" value={draft.organizationLabel} onChange={(v) => update("organizationLabel", v)} maxLength={60} />
+          <BilingualField label="Country Field Label" value={draft.countryLabel} onChange={(v) => update("countryLabel", v)} maxLength={60} />
+          <BilingualField label="Message Field Label" value={draft.messageLabel} onChange={(v) => update("messageLabel", v)} maxLength={100} />
+          <BilingualField label="Button Text" value={draft.buttonText} onChange={(v) => update("buttonText", v)} maxLength={40} />
         </CardContent>
       </Card>
 
@@ -91,16 +70,10 @@ const ContactEditor = () => {
 
       <Card>
         <CardHeader><CardTitle>Auto-Reply to User</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Auto-Reply Subject</Label>
-            <Input value={draft.autoReplySubject} onChange={(e) => update("autoReplySubject", e.target.value)} maxLength={200} className="mt-1" placeholder="Thank you for contacting us!" />
-          </div>
-          <div>
-            <Label>Auto-Reply Message</Label>
-            <Textarea value={draft.autoReplyMessage} onChange={(e) => update("autoReplyMessage", e.target.value)} maxLength={2000} className="mt-1" placeholder="We have received your message and will get back to you shortly." rows={4} />
-            <p className="text-xs text-muted-foreground mt-1">This message will be sent automatically to the user after they submit the contact form.</p>
-          </div>
+        <CardContent className="space-y-6">
+          <BilingualField label="Auto-Reply Subject" value={draft.autoReplySubject} onChange={(v) => update("autoReplySubject", v)} maxLength={200} />
+          <BilingualField label="Auto-Reply Message" value={draft.autoReplyMessage} onChange={(v) => update("autoReplyMessage", v)} maxLength={2000} multiline rows={4} />
+          <p className="text-xs text-muted-foreground">This message will be sent automatically to the user after they submit the contact form.</p>
         </CardContent>
       </Card>
 
