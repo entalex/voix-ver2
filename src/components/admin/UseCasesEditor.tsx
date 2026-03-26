@@ -1,27 +1,18 @@
 import { useState } from "react";
 import { useLandingData, UseCaseCard } from "@/context/LandingDataContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import BilingualField from "./BilingualField";
+import { t } from "@/context/LanguageContext";
 
 const UseCasesEditor = () => {
   const { useCases, setUseCases } = useLandingData();
   const { toast } = useToast();
   const [draft, setDraft] = useState<UseCaseCard[]>(() => JSON.parse(JSON.stringify(useCases)));
   const [saving, setSaving] = useState(false);
-
-  const update = (index: number, field: keyof UseCaseCard, value: string) => {
-    setDraft((prev) => {
-      const next = [...prev];
-      next[index] = { ...next[index], [field]: value };
-      return next;
-    });
-  };
 
   const save = async () => {
     setSaving(true);
@@ -44,16 +35,34 @@ const UseCasesEditor = () => {
     <div className="space-y-6">
       {draft.map((uc, i) => (
         <Card key={i}>
-          <CardHeader><CardTitle>{uc.title || `Use Case ${i + 1}`}</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t(uc.title, "en") || `Use Case ${i + 1}`}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input value={uc.title} onChange={(e) => update(i, "title", e.target.value)} maxLength={60} className="mt-1" />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea value={uc.description} onChange={(e) => update(i, "description", e.target.value)} maxLength={300} rows={3} className="mt-1" />
-            </div>
+            <BilingualField
+              label="Title"
+              value={uc.title}
+              onChange={(v) => {
+                setDraft((prev) => {
+                  const next = [...prev];
+                  next[i] = { ...next[i], title: v };
+                  return next;
+                });
+              }}
+              maxLength={60}
+            />
+            <BilingualField
+              label="Description"
+              value={uc.description}
+              onChange={(v) => {
+                setDraft((prev) => {
+                  const next = [...prev];
+                  next[i] = { ...next[i], description: v };
+                  return next;
+                });
+              }}
+              maxLength={300}
+              multiline
+              rows={3}
+            />
           </CardContent>
         </Card>
       ))}

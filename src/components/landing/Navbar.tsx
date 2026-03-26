@@ -1,13 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ChevronRight, Globe, X } from "lucide-react";
-
-const navLinks = [
-  { label: "Product", href: "#features" },
-  { label: "Team", href: "#team" },
-  { label: "Use Cases", href: "#use-cases" },
-];
+import { Menu, Globe, X } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 const scrollToSection = (id: string) => {
   if (id === "top") {
@@ -17,8 +12,24 @@ const scrollToSection = (id: string) => {
   }
 };
 
+const navLinks = {
+  en: [
+    { label: "Product", href: "#features" },
+    { label: "Team", href: "#team" },
+    { label: "Use Cases", href: "#use-cases" },
+  ],
+  ka: [
+    { label: "პროდუქტი", href: "#features" },
+    { label: "გუნდი", href: "#team" },
+    { label: "გამოყენება", href: "#use-cases" },
+  ],
+};
+
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const { lang, toggleLang } = useLanguage();
+
+  const links = navLinks[lang];
 
   const handleNavClick = (href: string) => {
     setOpen(false);
@@ -39,7 +50,7 @@ const Navbar = () => {
 
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
+          {links.map((link) => (
             <a
               key={link.href}
               href={link.href}
@@ -48,8 +59,15 @@ const Navbar = () => {
               {link.label}
             </a>
           ))}
+          <button
+            onClick={toggleLang}
+            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+          >
+            <Globe className="h-4 w-4" />
+            {lang === "en" ? "Eng" : "ქარ"}
+          </button>
           <Button className="rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6">
-            Request Demo
+            {lang === "ka" ? "დემოს მოთხოვნა" : "Request Demo"}
           </Button>
         </div>
 
@@ -74,11 +92,11 @@ const Navbar = () => {
                 <span className="text-xl font-bold text-white tracking-tight">VOIX</span>
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => { e.stopPropagation(); toggleLang(); }}
                     className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors"
                   >
                     <Globe className="h-4 w-4" />
-                    <span className="text-sm font-medium">Eng</span>
+                    <span className="text-sm font-medium">{lang === "en" ? "Eng" : "ქარ"}</span>
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); setOpen(false); }}
@@ -91,7 +109,7 @@ const Navbar = () => {
 
               {/* Nav Links */}
               <div className="flex flex-col pt-4">
-                {navLinks.map((link) => (
+                {links.map((link) => (
                   <button
                     key={link.href}
                     onClick={() => handleNavClick(link.href)}
@@ -111,7 +129,7 @@ const Navbar = () => {
                   className="w-full rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90 h-12 text-base font-semibold"
                   onClick={() => setOpen(false)}
                 >
-                  Request Demo
+                  {lang === "ka" ? "დემოს მოთხოვნა" : "Request Demo"}
                 </Button>
                 <div className="flex items-center gap-4">
                   {[0, 1, 2].map((i) => (

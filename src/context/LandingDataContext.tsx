@@ -7,13 +7,14 @@ import {
   useCases as defaultUseCases,
 } from "@/data/landingData";
 import { supabase } from "@/integrations/supabase/client";
+import { BiText, bi } from "@/context/LanguageContext";
 
 // --- Types ---
 
 export interface HeroData {
-  headline: string;
-  subheadline: string;
-  buttonText: string;
+  headline: BiText;
+  subheadline: BiText;
+  buttonText: BiText;
 }
 
 export interface FeatureItem {
@@ -30,44 +31,56 @@ export interface TeamMember {
 }
 
 export interface TeamSectionData {
-  heading: string;
+  heading: BiText;
   bannerLabel: string;
-  barText: string;
+  barText: BiText;
   bannerImageUrl?: string;
 }
 
 export interface WhyVoixCard {
   iconName: string;
-  title: string;
-  description: string;
+  title: BiText;
+  description: BiText;
 }
 
 export interface WhyVoixData {
-  sectionTitle: string;
-  sectionSubtitle: string;
+  sectionTitle: BiText;
+  sectionSubtitle: BiText;
   cards: WhyVoixCard[];
 }
 
 export interface UseCaseCard {
-  title: string;
-  description: string;
+  title: BiText;
+  description: BiText;
 }
 
 export interface FooterData {
-  copyrightText: string;
+  copyrightText: BiText;
 }
 
 export interface ContactData {
-  sectionTitle: string;
-  sectionDescription: string;
-  emailLabel: string;
-  organizationLabel: string;
-  countryLabel: string;
-  messageLabel: string;
-  buttonText: string;
+  sectionTitle: BiText;
+  sectionDescription: BiText;
+  emailLabel: BiText;
+  organizationLabel: BiText;
+  countryLabel: BiText;
+  messageLabel: BiText;
+  buttonText: BiText;
   recipientEmail: string;
-  autoReplySubject: string;
-  autoReplyMessage: string;
+  autoReplySubject: BiText;
+  autoReplyMessage: BiText;
+}
+
+export interface HowItWorksData {
+  sectionTitle: BiText;
+  sectionSubtitle: BiText;
+  steps: { title: BiText; description: BiText }[];
+}
+
+export interface CTAData {
+  headline: BiText;
+  description: BiText;
+  buttonText: BiText;
 }
 
 interface LandingDataState {
@@ -79,6 +92,8 @@ interface LandingDataState {
   useCases: UseCaseCard[];
   footer: FooterData;
   contact: ContactData;
+  howItWorks: HowItWorksData;
+  cta: CTAData;
   setHero: (hero: HeroData) => void;
   setFeatures: (features: FeatureItem[]) => void;
   setTeamMembers: (members: TeamMember[]) => void;
@@ -87,45 +102,77 @@ interface LandingDataState {
   setUseCases: (data: UseCaseCard[]) => void;
   setFooter: (data: FooterData) => void;
   setContact: (data: ContactData) => void;
+  setHowItWorks: (data: HowItWorksData) => void;
+  setCta: (data: CTAData) => void;
 }
 
+/** Helper to migrate plain strings to BiText on load */
+const ensureBi = (val: any): BiText => {
+  if (!val) return bi("");
+  if (typeof val === "string") return bi(val);
+  if (typeof val === "object" && ("en" in val || "ka" in val))
+    return { en: val.en || "", ka: val.ka || "" };
+  return bi(String(val));
+};
+
 const defaultHero: HeroData = {
-  headline: "Unlock the Power of Voice AI",
-  subheadline:
-    "The objective in-person monitoring system. Capture interactions, audit performance, and uncover the unbiased truth.",
-  buttonText: "Request Demo",
+  headline: bi("Unlock the Power of Voice AI"),
+  subheadline: bi("The objective in-person monitoring system. Capture interactions, audit performance, and uncover the unbiased truth."),
+  buttonText: bi("Request Demo"),
 };
 
 const defaultWhyVoixData: WhyVoixData = {
-  sectionTitle: "Why VOIX?",
-  sectionSubtitle: "Built for teams that demand objectivity, speed, and security.",
+  sectionTitle: bi("Why VOIX?"),
+  sectionSubtitle: bi("Built for teams that demand objectivity, speed, and security."),
   cards: defaultWhyVoix.map((item) => ({
     iconName: item.icon.displayName || item.title,
-    title: item.title,
-    description: item.description,
+    title: bi(item.title),
+    description: bi(item.description),
   })),
 };
 
 const defaultUseCasesData: UseCaseCard[] = defaultUseCases.map((uc) => ({
-  title: uc.title,
-  description: uc.description,
+  title: bi(uc.title),
+  description: bi(uc.description),
 }));
 
 const defaultFooterData: FooterData = {
-  copyrightText: "© 2026 VOIX. All rights reserved.",
+  copyrightText: bi("© 2026 VOIX. All rights reserved."),
 };
 
 const defaultContactData: ContactData = {
-  sectionTitle: "Contact Us",
-  sectionDescription: "",
-  emailLabel: "Your Email",
-  organizationLabel: "Organization Name",
-  countryLabel: "Country",
-  messageLabel: "What information you want to share with us?",
-  buttonText: "Send",
+  sectionTitle: bi("Contact Us"),
+  sectionDescription: bi(""),
+  emailLabel: bi("Your Email"),
+  organizationLabel: bi("Organization Name"),
+  countryLabel: bi("Country"),
+  messageLabel: bi("What information you want to share with us?"),
+  buttonText: bi("Send"),
   recipientEmail: "",
-  autoReplySubject: "Thank you for contacting us!",
-  autoReplyMessage: "We have received your message and will get back to you shortly.",
+  autoReplySubject: bi("Thank you for contacting us!"),
+  autoReplyMessage: bi("We have received your message and will get back to you shortly."),
+};
+
+const defaultHowItWorksData: HowItWorksData = {
+  sectionTitle: bi("How It Works"),
+  sectionSubtitle: bi("Get started in three simple steps."),
+  steps: [
+    { title: bi("Capture"), description: bi("Deploy VOIX in your environment to passively capture voice interactions.") },
+    { title: bi("Analyze"), description: bi("Our AI engine transcribes, scores, and surfaces actionable insights automatically.") },
+    { title: bi("Act"), description: bi("Review dashboards, coach your team, and drive measurable performance improvements.") },
+  ],
+};
+
+const defaultCTAData: CTAData = {
+  headline: bi("Ready to Transform Your Operations?"),
+  description: bi("Join leading organizations using VOIX to unlock objective, data-driven insights from every interaction."),
+  buttonText: bi("Request Demo"),
+};
+
+const defaultTeamSectionData: TeamSectionData = {
+  heading: bi(defaultTeamSection.heading),
+  bannerLabel: defaultTeamSection.bannerLabel,
+  barText: bi(defaultTeamSection.barText),
 };
 
 const LandingDataContext = createContext<LandingDataState | undefined>(undefined);
@@ -136,11 +183,13 @@ export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
     defaultFeatures.map(({ title, description, imageLabel }) => ({ title, description, imageLabel }))
   );
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(defaultTeamMembers);
-  const [teamSection, setTeamSectionState] = useState<TeamSectionData>(defaultTeamSection);
+  const [teamSection, setTeamSectionState] = useState<TeamSectionData>(defaultTeamSectionData);
   const [whyVoix, setWhyVoix] = useState<WhyVoixData>(defaultWhyVoixData);
   const [useCases, setUseCases] = useState<UseCaseCard[]>(defaultUseCasesData);
   const [footer, setFooter] = useState<FooterData>(defaultFooterData);
   const [contact, setContact] = useState<ContactData>(defaultContactData);
+  const [howItWorks, setHowItWorks] = useState<HowItWorksData>(defaultHowItWorksData);
+  const [cta, setCta] = useState<CTAData>(defaultCTAData);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -148,44 +197,92 @@ export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
         .from("site_settings")
         .select("key, value")
         .in("key", [
-          "hero",
-          "team_banner_url",
-          "team_description",
-          "why_voix",
-          "use_cases",
-          "footer",
-          "contact",
+          "hero", "team_banner_url", "team_description", "team_heading",
+          "why_voix", "use_cases", "footer", "contact",
+          "how_it_works", "cta",
         ]);
       if (data) {
-        const heroRow = data.find((r) => r.key === "hero");
-        const bannerRow = data.find((r) => r.key === "team_banner_url");
-        const descRow = data.find((r) => r.key === "team_description");
-        const whyRow = data.find((r) => r.key === "why_voix");
-        const ucRow = data.find((r) => r.key === "use_cases");
-        const footerRow = data.find((r) => r.key === "footer");
-        const contactRow = data.find((r) => r.key === "contact");
+        const get = (k: string) => data.find((r) => r.key === k);
+        const heroRow = get("hero");
+        const bannerRow = get("team_banner_url");
+        const descRow = get("team_description");
+        const headingRow = get("team_heading");
+        const whyRow = get("why_voix");
+        const ucRow = get("use_cases");
+        const footerRow = get("footer");
+        const contactRow = get("contact");
+        const hiwRow = get("how_it_works");
+        const ctaRow = get("cta");
 
         if (heroRow?.value) {
-          try { setHero(JSON.parse(heroRow.value)); } catch {}
+          try {
+            const parsed = JSON.parse(heroRow.value);
+            setHero({
+              headline: ensureBi(parsed.headline),
+              subheadline: ensureBi(parsed.subheadline),
+              buttonText: ensureBi(parsed.buttonText),
+            });
+          } catch {}
         }
 
         setTeamSectionState((prev) => ({
           ...prev,
           bannerImageUrl: bannerRow?.value ?? prev.bannerImageUrl,
-          barText: descRow?.value ?? prev.barText,
+          barText: descRow?.value ? ensureBi((() => { try { return JSON.parse(descRow.value!); } catch { return descRow.value; } })()) : prev.barText,
+          heading: headingRow?.value ? ensureBi((() => { try { return JSON.parse(headingRow.value!); } catch { return headingRow.value; } })()) : prev.heading,
         }));
 
         if (whyRow?.value) {
-          try { setWhyVoix(JSON.parse(whyRow.value)); } catch {}
+          try {
+            const parsed = JSON.parse(whyRow.value);
+            setWhyVoix({
+              sectionTitle: ensureBi(parsed.sectionTitle),
+              sectionSubtitle: ensureBi(parsed.sectionSubtitle),
+              cards: (parsed.cards || []).map((c: any) => ({
+                iconName: c.iconName,
+                title: ensureBi(c.title),
+                description: ensureBi(c.description),
+              })),
+            });
+          } catch {}
         }
         if (ucRow?.value) {
-          try { setUseCases(JSON.parse(ucRow.value)); } catch {}
+          try {
+            const parsed = JSON.parse(ucRow.value);
+            setUseCases(parsed.map((uc: any) => ({
+              title: ensureBi(uc.title),
+              description: ensureBi(uc.description),
+            })));
+          } catch {}
         }
         if (footerRow?.value) {
-          try { setFooter(JSON.parse(footerRow.value)); } catch {}
+          try {
+            const parsed = JSON.parse(footerRow.value);
+            setFooter({ copyrightText: ensureBi(parsed.copyrightText ?? parsed) });
+          } catch {}
         }
         if (contactRow?.value) {
-          try { setContact(JSON.parse(contactRow.value)); } catch {}
+          try {
+            const parsed = JSON.parse(contactRow.value);
+            setContact({
+              sectionTitle: ensureBi(parsed.sectionTitle),
+              sectionDescription: ensureBi(parsed.sectionDescription),
+              emailLabel: ensureBi(parsed.emailLabel),
+              organizationLabel: ensureBi(parsed.organizationLabel),
+              countryLabel: ensureBi(parsed.countryLabel),
+              messageLabel: ensureBi(parsed.messageLabel),
+              buttonText: ensureBi(parsed.buttonText),
+              recipientEmail: parsed.recipientEmail || "",
+              autoReplySubject: ensureBi(parsed.autoReplySubject),
+              autoReplyMessage: ensureBi(parsed.autoReplyMessage),
+            });
+          } catch {}
+        }
+        if (hiwRow?.value) {
+          try { setHowItWorks(JSON.parse(hiwRow.value)); } catch {}
+        }
+        if (ctaRow?.value) {
+          try { setCta(JSON.parse(ctaRow.value)); } catch {}
         }
       }
     };
@@ -199,8 +296,8 @@ export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
   return (
     <LandingDataContext.Provider
       value={{
-        hero, features, teamMembers, teamSection, whyVoix, useCases, footer, contact,
-        setHero, setFeatures, setTeamMembers, setTeamSection, setWhyVoix, setUseCases, setFooter, setContact,
+        hero, features, teamMembers, teamSection, whyVoix, useCases, footer, contact, howItWorks, cta,
+        setHero, setFeatures, setTeamMembers, setTeamSection, setWhyVoix, setUseCases, setFooter, setContact, setHowItWorks, setCta,
       }}
     >
       {children}

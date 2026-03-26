@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { useLandingData, WhyVoixData } from "@/context/LandingDataContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import BilingualField from "./BilingualField";
 
 const ICON_OPTIONS = [
   "Zap", "Lock", "TrendingUp", "Shield", "Eye", "Mic", "BarChart3",
@@ -20,14 +19,6 @@ const WhyVoixEditor = () => {
   const { toast } = useToast();
   const [draft, setDraft] = useState<WhyVoixData>(() => JSON.parse(JSON.stringify(whyVoix)));
   const [saving, setSaving] = useState(false);
-
-  const updateCard = (index: number, field: string, value: string) => {
-    setDraft((prev) => {
-      const cards = [...prev.cards];
-      cards[index] = { ...cards[index], [field]: value };
-      return { ...prev, cards };
-    });
-  };
 
   const save = async () => {
     setSaving(true);
@@ -50,15 +41,21 @@ const WhyVoixEditor = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader><CardTitle>Section Header</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Section Title</Label>
-            <Input value={draft.sectionTitle} onChange={(e) => setDraft((p) => ({ ...p, sectionTitle: e.target.value }))} maxLength={80} className="mt-1" />
-          </div>
-          <div>
-            <Label>Section Subtitle</Label>
-            <Textarea value={draft.sectionSubtitle} onChange={(e) => setDraft((p) => ({ ...p, sectionSubtitle: e.target.value }))} maxLength={200} rows={2} className="mt-1" />
-          </div>
+        <CardContent className="space-y-6">
+          <BilingualField
+            label="Section Title"
+            value={draft.sectionTitle}
+            onChange={(v) => setDraft((p) => ({ ...p, sectionTitle: v }))}
+            maxLength={80}
+          />
+          <BilingualField
+            label="Section Subtitle"
+            value={draft.sectionSubtitle}
+            onChange={(v) => setDraft((p) => ({ ...p, sectionSubtitle: v }))}
+            maxLength={200}
+            multiline
+            rows={2}
+          />
         </CardContent>
       </Card>
 
@@ -68,7 +65,13 @@ const WhyVoixEditor = () => {
           <CardContent className="space-y-4">
             <div>
               <Label>Icon</Label>
-              <Select value={card.iconName} onValueChange={(v) => updateCard(i, "iconName", v)}>
+              <Select value={card.iconName} onValueChange={(v) => {
+                setDraft((prev) => {
+                  const cards = [...prev.cards];
+                  cards[i] = { ...cards[i], iconName: v };
+                  return { ...prev, cards };
+                });
+              }}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {ICON_OPTIONS.map((icon) => (
@@ -77,14 +80,32 @@ const WhyVoixEditor = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>Title</Label>
-              <Input value={card.title} onChange={(e) => updateCard(i, "title", e.target.value)} maxLength={60} className="mt-1" />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea value={card.description} onChange={(e) => updateCard(i, "description", e.target.value)} maxLength={200} rows={3} className="mt-1" />
-            </div>
+            <BilingualField
+              label="Title"
+              value={card.title}
+              onChange={(v) => {
+                setDraft((prev) => {
+                  const cards = [...prev.cards];
+                  cards[i] = { ...cards[i], title: v };
+                  return { ...prev, cards };
+                });
+              }}
+              maxLength={60}
+            />
+            <BilingualField
+              label="Description"
+              value={card.description}
+              onChange={(v) => {
+                setDraft((prev) => {
+                  const cards = [...prev.cards];
+                  cards[i] = { ...cards[i], description: v };
+                  return { ...prev, cards };
+                });
+              }}
+              maxLength={200}
+              multiline
+              rows={3}
+            />
           </CardContent>
         </Card>
       ))}

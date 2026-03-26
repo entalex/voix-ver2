@@ -102,4 +102,8 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  .font-georgian {
+    font-family: 'Noto Sans Georgian', sans-serif;
+  }
 }
