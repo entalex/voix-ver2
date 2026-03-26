@@ -1,15 +1,17 @@
 import { Mic } from "lucide-react";
 import { useProductFeatures } from "@/hooks/useProductFeatures";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/context/LanguageContext";
 
 const Features = () => {
   const { data: features = [], isLoading } = useProductFeatures();
+  const { lang } = useLanguage();
 
   return (
     <section id="features" className="py-16 md:py-24 bg-background">
       <div className="max-w-[1200px] mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12">
-          Product Features
+          {lang === "ka" ? "პროდუქტის ფუნქციები" : "Product Features"}
         </h2>
 
         {isLoading ? (

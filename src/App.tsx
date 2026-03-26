@@ -20,6 +20,7 @@ const App = () => (
       <AuthProvider>
         <LanguageProvider>
           <LandingDataProvider>
+            <GlobalFontWrapper />
             <Toaster />
             <Sonner />
             <BrowserRouter>
