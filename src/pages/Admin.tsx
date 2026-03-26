@@ -23,9 +23,23 @@ const HeroEditor = () => {
   const { toast } = useToast();
   const [draft, setDraft] = useState<HeroData>(() => ({ ...hero }));
 
-  const save = () => {
-    setHero(draft);
-    toast({ title: "Hero section updated!" });
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("site_settings")
+        .upsert({ key: "hero", value: JSON.stringify(draft) }, { onConflict: "key" });
+      if (error) throw error;
+      setHero(draft);
+      toast({ title: "Hero section updated!" });
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Save failed", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -44,7 +58,9 @@ const HeroEditor = () => {
           <Label>Button Text</Label>
           <Input value={draft.buttonText} onChange={(e) => setDraft((prev) => ({ ...prev, buttonText: e.target.value }))} maxLength={40} className="mt-1" />
         </div>
-        <Button onClick={save} className="bg-secondary text-secondary-foreground hover:bg-secondary/90">Save Hero</Button>
+        <Button onClick={save} disabled={saving} className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
+          {saving ? "Saving..." : "Save Hero"}
+        </Button>
       </CardContent>
     </Card>
   );
