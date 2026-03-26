@@ -6,6 +6,8 @@ export interface ProductFeature {
   id: string;
   title: string;
   description: string;
+  title_ka: string;
+  description_ka: string;
   image_url: string | null;
   order_index: number;
 }
@@ -18,7 +20,7 @@ export function useProductFeatures() {
     queryFn: async (): Promise<ProductFeature[]> => {
       const { data, error } = await supabase
         .from("product_features")
-        .select("id, title, description, image_url, order_index")
+        .select("id, title, description, title_ka, description_ka, image_url, order_index")
         .order("order_index");
       if (error) throw error;
       return data ?? [];
@@ -38,6 +40,8 @@ export function useUpsertFeature() {
             .update({
               title: feature.title,
               description: feature.description,
+              title_ka: feature.title_ka,
+              description_ka: feature.description_ka,
               image_url: feature.image_url,
               order_index: feature.order_index,
             })
@@ -49,6 +53,8 @@ export function useUpsertFeature() {
             .insert({
               title: feature.title ?? "",
               description: feature.description ?? "",
+              title_ka: feature.title_ka ?? "",
+              description_ka: feature.description_ka ?? "",
               image_url: feature.image_url ?? null,
               order_index: feature.order_index ?? 0,
             })
