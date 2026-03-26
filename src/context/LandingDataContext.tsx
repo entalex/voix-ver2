@@ -208,7 +208,7 @@ export const LandingDataProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useLandingData = () => {
+export const useLandingData = (): LandingDataState => {
   const ctx = useContext(LandingDataContext);
   if (!ctx) throw new Error("useLandingData must be used within LandingDataProvider");
   return ctx;
