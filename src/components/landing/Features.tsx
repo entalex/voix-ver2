@@ -56,8 +56,12 @@ const Features = () => {
 
                   {/* Text */}
                   <div className={`flex flex-col justify-center ${isEven ? "md:order-2" : "md:order-1"}`}>
-                    <h3 className="text-xl md:text-2xl font-bold text-primary">{feature.title}</h3>
-                    <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+                    <h3 className="text-xl md:text-2xl font-bold text-primary">
+                      {lang === "ka" && feature.title_ka ? feature.title_ka : feature.title}
+                    </h3>
+                    <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                      {lang === "ka" && feature.description_ka ? feature.description_ka : feature.description}
+                    </p>
                   </div>
                 </div>
               );

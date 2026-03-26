@@ -36,28 +36,34 @@ export type Database = {
         Row: {
           created_at: string
           description: string
+          description_ka: string
           id: string
           image_url: string | null
           order_index: number
           title: string
+          title_ka: string
           updated_at: string
         }
         Insert: {
           created_at?: string
           description?: string
+          description_ka?: string
           id?: string
           image_url?: string | null
           order_index?: number
           title?: string
+          title_ka?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
           description?: string
+          description_ka?: string
           id?: string
           image_url?: string | null
           order_index?: number
           title?: string
+          title_ka?: string
           updated_at?: string
         }
         Relationships: []

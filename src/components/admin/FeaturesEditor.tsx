@@ -28,6 +28,8 @@ const FeaturesEditor = () => {
   const getDraft = (f: ProductFeature) => ({
     title: drafts[f.id]?.title ?? f.title,
     description: drafts[f.id]?.description ?? f.description,
+    title_ka: drafts[f.id]?.title_ka ?? f.title_ka,
+    description_ka: drafts[f.id]?.description_ka ?? f.description_ka,
   });
 
   const updateDraft = (id: string, field: string, value: string) => {
@@ -53,6 +55,8 @@ const FeaturesEditor = () => {
     await upsert.mutateAsync({
       title: "New Feature",
       description: "Describe this feature...",
+      title_ka: "",
+      description_ka: "",
       order_index: features.length,
     });
     toast({ title: "Feature added!" });
@@ -67,7 +71,6 @@ const FeaturesEditor = () => {
     setUploadingId(featureId);
     try {
       const publicUrl = await uploadImage.mutateAsync({ file, featureId });
-      // Add cache-busting param
       const urlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
       await upsert.mutateAsync({ id: featureId, image_url: urlWithCacheBust });
       toast({ title: "Image uploaded!" });
@@ -107,25 +110,56 @@ const FeaturesEditor = () => {
                 #{feature.order_index + 1}
               </span>
 
-              <div>
-                <Label>Title</Label>
-                <Input
-                  value={d.title}
-                  onChange={(e) => updateDraft(feature.id, "title", e.target.value)}
-                  maxLength={80}
-                  className="mt-1"
-                />
+              {/* Title - Bilingual */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Title</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-xs text-muted-foreground font-medium">🇬🇧 English</span>
+                    <Input
+                      value={d.title}
+                      onChange={(e) => updateDraft(feature.id, "title", e.target.value)}
+                      maxLength={80}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-xs text-muted-foreground font-medium">🇬🇪 ქართული</span>
+                    <Input
+                      value={d.title_ka}
+                      onChange={(e) => updateDraft(feature.id, "title_ka", e.target.value)}
+                      maxLength={80}
+                      className="mt-1 font-georgian"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <Label>Description</Label>
-                <Textarea
-                  value={d.description}
-                  onChange={(e) => updateDraft(feature.id, "description", e.target.value)}
-                  maxLength={500}
-                  rows={3}
-                  className="mt-1"
-                />
+              {/* Description - Bilingual */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Description</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-xs text-muted-foreground font-medium">🇬🇧 English</span>
+                    <Textarea
+                      value={d.description}
+                      onChange={(e) => updateDraft(feature.id, "description", e.target.value)}
+                      maxLength={500}
+                      rows={3}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-xs text-muted-foreground font-medium">🇬🇪 ქართული</span>
+                    <Textarea
+                      value={d.description_ka}
+                      onChange={(e) => updateDraft(feature.id, "description_ka", e.target.value)}
+                      maxLength={500}
+                      rows={3}
+                      className="mt-1 font-georgian"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Image upload */}
