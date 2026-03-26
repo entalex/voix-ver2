@@ -56,13 +56,6 @@ const Navbar = () => {
                     <Globe className="h-4 w-4" />
                     <span className="text-sm font-medium">Eng</span>
                   </button>
-                  <a
-                    href="#contact"
-                    onClick={() => setOpen(false)}
-                    className="text-white/70 hover:text-white transition-colors"
-                  >
-                    <Mail className="h-5 w-5" />
-                  </a>
                   <button
                     onClick={() => setOpen(false)}
                     className="text-white/70 hover:text-white transition-colors"
