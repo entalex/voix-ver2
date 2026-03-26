@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ChevronRight, Globe, Mail, X } from "lucide-react";
+import { Menu, ChevronRight, Globe, X } from "lucide-react";
 
 const navLinks = [
   { label: "Product", href: "#features" },
@@ -56,13 +56,6 @@ const Navbar = () => {
                     <Globe className="h-4 w-4" />
                     <span className="text-sm font-medium">Eng</span>
                   </button>
-                  <a
-                    href="#contact"
-                    onClick={() => setOpen(false)}
-                    className="text-white/70 hover:text-white transition-colors"
-                  >
-                    <Mail className="h-5 w-5" />
-                  </a>
                   <button
                     onClick={() => setOpen(false)}
                     className="text-white/70 hover:text-white transition-colors"
@@ -79,10 +72,9 @@ const Navbar = () => {
                     key={link.href}
                     href={link.href}
                     onClick={() => setOpen(false)}
-                    className="flex items-center justify-between px-6 py-5 text-lg font-medium text-white/90 hover:text-white border-b border-white/10 transition-colors"
+                    className="block px-6 py-5 text-lg font-medium text-white/90 hover:text-white border-b border-white/10 transition-colors text-right"
                   >
                     {link.label}
-                    <ChevronRight className="h-5 w-5 text-white/40" />
                   </a>
                 ))}
               </div>
