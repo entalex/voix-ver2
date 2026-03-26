@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ChevronRight, Globe, Mail, X } from "lucide-react";
+import { Menu, ChevronRight, Globe, X } from "lucide-react";
 
 const navLinks = [
   { label: "Product", href: "#features" },
