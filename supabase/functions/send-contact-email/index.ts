@@ -209,7 +209,7 @@ serve(async (req) => {
       });
       console.log("Email 1 sent successfully.");
     } catch (err) {
-      console.error("Email 1 failed:", err.message || err);
+      console.error("Email 1 failed:", (err as Error)?.message || err);
     }
 
     // Email 2: Auto-reply to user
@@ -236,7 +236,7 @@ serve(async (req) => {
         });
         console.log("Email 2 sent successfully.");
       } catch (err) {
-        console.error("Email 2 failed:", err.message || err);
+        console.error("Email 2 failed:", (err as Error)?.message || err);
       }
     }
 
@@ -247,7 +247,7 @@ serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error:", error.message || error);
+    console.error("Error:", (error as Error)?.message || error);
     return new Response(
       JSON.stringify({ error: "Failed to send email. Please try again later." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
