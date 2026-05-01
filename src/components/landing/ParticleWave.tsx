@@ -96,14 +96,14 @@ const ParticleWave = () => {
         const nx = p.x / w;
 
         // Composite wave with varying frequencies for unique shape (lower freq = wider waves)
-        const wave1 = Math.sin(nx * Math.PI * 0.65 + t * 1.2) * 0.55;
-        const wave2 = Math.sin(nx * Math.PI * 0.4 + t * 0.9 + 1.0) * 0.35;
-        const wave3 = Math.sin(nx * Math.PI * 1.0 + t * 2.0 + 2.5) * 0.15;
-        const wave4 = Math.sin(nx * Math.PI * 0.22 + t * 0.5 + p.phaseOffset * 0.3) * 0.2;
+        const wave1 = Math.sin(nx * Math.PI * 0.32 + t * 1.2) * 0.55;
+        const wave2 = Math.sin(nx * Math.PI * 0.2 + t * 0.9 + 1.0) * 0.35;
+        const wave3 = Math.sin(nx * Math.PI * 0.5 + t * 2.0 + 2.5) * 0.15;
+        const wave4 = Math.sin(nx * Math.PI * 0.11 + t * 0.5 + p.phaseOffset * 0.3) * 0.2;
         const mainWave = wave1 + wave2 + wave3 + wave4;
 
         // Edge fade
-        const edgeFade = Math.pow(Math.sin(Math.max(0, Math.min(1, nx)) * Math.PI), 0.25);
+        const edgeFade = Math.pow(Math.sin(Math.max(0, Math.min(1, nx)) * Math.PI), 0.15);
         const amplitude = h * (mobile ? 0.28 : 0.32) * edgeFade;
 
         // Band thickness
