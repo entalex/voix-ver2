@@ -1,24 +1,9 @@
 import { useRef, useEffect } from "react";
 
-// Color palette inspired by the reference: deep navy bg, glowing cyan core,
-// magenta accents on the chaotic left, bright cyan calm right.
-const BG_TOP = "#070b1a";
-const BG_BOTTOM = "#0d1530";
-
-interface Particle {
-  x: number;
-  y: number;
-  r: number;
-  hue: number; // 0..1 -> magenta..cyan blend
-  alpha: number;
-  twinkle: number;
-}
-
 const ParticleWave = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const time = useRef(0);
-  const particles = useRef<Particle[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -30,23 +15,6 @@ const ParticleWave = () => {
     let h = 0;
     let mobile = false;
 
-    const buildParticles = () => {
-      mobile = w < 600;
-      const count = mobile ? 140 : 240;
-      const arr: Particle[] = [];
-      for (let i = 0; i < count; i++) {
-        arr.push({
-          x: Math.random(),
-          y: Math.random(),
-          r: Math.random() * (mobile ? 1.4 : 1.8) + 0.3,
-          hue: Math.random(),
-          alpha: 0.2 + Math.random() * 0.8,
-          twinkle: Math.random() * Math.PI * 2,
-        });
-      }
-      particles.current = arr;
-    };
-
     const resize = () => {
       const rect = canvas.parentElement!.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
@@ -57,133 +25,180 @@ const ParticleWave = () => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       w = rect.width;
       h = rect.height;
-      buildParticles();
+      mobile = w < 640;
     };
 
     resize();
     window.addEventListener("resize", resize);
 
-    // Color helpers — magenta at left to cyan at right
-    const hueColor = (hue: number, alpha: number) => {
-      // hue 0 -> magenta (#c84cff), hue 1 -> cyan (#5ef0ff)
-      const r = Math.round(200 - hue * 120);
-      const g = Math.round(80 + hue * 160);
-      const b = Math.round(255);
-      return `rgba(${r},${g},${b},${alpha})`;
-    };
-
     const draw = () => {
-      time.current += 0.008;
+      time.current += 0.0065;
       const t = time.current;
+      const centerY = h * 0.5;
+      const horizonThickness = mobile ? 10 : 14;
 
-      // Background gradient
-      const bg = ctx.createLinearGradient(0, 0, 0, h);
-      bg.addColorStop(0, BG_TOP);
-      bg.addColorStop(1, BG_BOTTOM);
+      const bg = ctx.createLinearGradient(0, 0, w, 0);
+      bg.addColorStop(0, "#f4f1ea");
+      bg.addColorStop(0.5, "#f2efeb");
+      bg.addColorStop(0.72, "#def4f6");
+      bg.addColorStop(0.88, "#c8d6fb");
+      bg.addColorStop(1, "#b99be8");
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
 
-      const centerY = h * 0.5;
-
-      // Soft horizontal glow band along the wave's calm middle
-      const glow = ctx.createRadialGradient(w * 0.5, centerY, 0, w * 0.5, centerY, w * 0.55);
-      glow.addColorStop(0, "rgba(120, 200, 255, 0.18)");
-      glow.addColorStop(0.4, "rgba(80, 140, 255, 0.06)");
-      glow.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = glow;
+      const rightGlow = ctx.createRadialGradient(w * 0.76, h * 0.55, 0, w * 0.76, h * 0.55, w * 0.36);
+      rightGlow.addColorStop(0, "rgba(255, 219, 112, 0.55)");
+      rightGlow.addColorStop(0.2, "rgba(255, 140, 196, 0.18)");
+      rightGlow.addColorStop(0.5, "rgba(83, 177, 255, 0.16)");
+      rightGlow.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = rightGlow;
       ctx.fillRect(0, 0, w, h);
 
-      // Wave function — chaotic left, calm middle, growing crest right
-      const waveY = (xNorm: number, layer: number) => {
-        // Envelope: chaotic amplitude on far left and right, low in middle
-        const leftChaos = Math.exp(-Math.pow((xNorm - 0.08) / 0.22, 2));
-        const rightCrest = Math.exp(-Math.pow((xNorm - 0.85) / 0.18, 2));
-        const calmCore = 0.18 * (1 - leftChaos - rightCrest * 0.6);
+      const panelStroke = "rgba(255,255,255,0.42)";
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = panelStroke;
+      const frameX = w * 0.06;
+      const frameY = h * 0.08;
+      const frameW = w * 0.88;
+      const frameH = h * 0.84;
+      ctx.beginPath();
+      ctx.roundRect(frameX, frameY, frameW, frameH, 28);
+      ctx.stroke();
 
-        // Envelopes stay anchored (shape doesn't move). Only sine phases
-        // advance over time → the wave looks alive but stays in place.
-        const main =
-          Math.sin(xNorm * Math.PI * 2.2 + t * 0.6 + layer * 0.04) *
-          (calmCore + rightCrest * 0.55);
+      ctx.beginPath();
+      ctx.roundRect(w * 0.63, h * 0.13, w * 0.26, h * 0.72, 24);
+      ctx.stroke();
 
-        const chaos =
-          (Math.sin(xNorm * 60 + t * 1.6 + layer * 0.6) * 0.5 +
-            Math.sin(xNorm * 95 - t * 1.2 + layer * 0.9) * 0.35 +
-            Math.sin(xNorm * 140 + t * 2.0 + layer * 0.3) * 0.25) *
-          leftChaos *
-          0.55;
+      ctx.beginPath();
+      ctx.roundRect(w * 0.73, h * 0.18, w * 0.12, h * 0.62, 20);
+      ctx.stroke();
 
-        const ripple =
-          Math.sin(xNorm * 35 - t * 1.0 + layer * 0.5) * rightCrest * 0.18;
+      ctx.strokeStyle = "rgba(255,255,255,0.2)";
+      ctx.beginPath();
+      ctx.moveTo(w * 0.5, 0);
+      ctx.lineTo(w * 0.5, h);
+      ctx.stroke();
 
-        return centerY + (main + chaos + ripple) * h;
+      const scroll = t * 0.028;
+      const smoothEnvelope = (xNorm: number, center: number, width: number, strength: number) =>
+        Math.exp(-Math.pow((xNorm - center) / width, 2)) * strength;
+
+      const baseWave = (xNorm: number, layer: number) => {
+        const xs = xNorm - scroll;
+        const leftMass = smoothEnvelope(xNorm, 0.18, 0.1, 0.9);
+        const leftMid = smoothEnvelope(xNorm, 0.34, 0.08, 0.55);
+        const leftTail = smoothEnvelope(xNorm, 0.45, 0.06, 0.28);
+        const rightOne = smoothEnvelope(xNorm, 0.58, 0.05, 0.46);
+        const rightTwo = smoothEnvelope(xNorm, 0.72, 0.08, 0.34);
+        const rightThree = smoothEnvelope(xNorm, 0.83, 0.12, 0.62);
+
+        const leftSignal =
+          (Math.sin(xs * 38 + layer * 0.045 + t * 0.55) * leftMass +
+            Math.sin(xs * 64 - layer * 0.035 + t * 0.42) * leftMid +
+            Math.sin(xs * 92 + layer * 0.025 + t * 0.35) * leftTail) *
+          0.92;
+
+        const leftChaos =
+          (Math.sin(xs * 180 + layer * 0.18 + t * 1.15) +
+            Math.sin(xs * 235 - layer * 0.08 - t * 0.9) * 0.75 +
+            Math.sin(xs * 310 + layer * 0.1 + t * 1.45) * 0.5) *
+          smoothEnvelope(xNorm, 0.16, 0.09, 0.09);
+
+        const rightSignal =
+          Math.sin(xs * 26 + t * 0.52 + layer * 0.03) * rightOne +
+          Math.sin(xs * 20 - t * 0.38 + layer * 0.035) * rightTwo +
+          Math.sin(xs * 14 + t * 0.3 + layer * 0.022) * rightThree;
+
+        return leftSignal + leftChaos + rightSignal;
       };
 
-      // Draw stacked thin lines forming a ribbon (the "many parallel curves" look)
-      const layers = mobile ? 28 : 44;
-      const stepX = mobile ? 4 : 2.5;
-      ctx.lineWidth = mobile ? 0.6 : 0.55;
+      const layerSpread = (xNorm: number) => {
+        const left = smoothEnvelope(xNorm, 0.18, 0.11, 1.55) + smoothEnvelope(xNorm, 0.36, 0.08, 0.9);
+        const right = smoothEnvelope(xNorm, 0.59, 0.05, 1.15) + smoothEnvelope(xNorm, 0.73, 0.08, 1.1) + smoothEnvelope(xNorm, 0.84, 0.13, 1.75);
+        return left + right + 0.05;
+      };
 
-      for (let l = 0; l < layers; l++) {
-        const layerOffset = (l - layers / 2) * (mobile ? 0.9 : 1.0);
-        // Color across the canvas: shift cyan->magenta by layer slightly for depth
-        ctx.beginPath();
-        for (let x = 0; x <= w; x += stepX) {
-          const xn = x / w;
-          const y = waveY(xn, l) + layerOffset * (0.4 + Math.exp(-Math.pow((xn - 0.85) / 0.18, 2)) * 1.6 + Math.exp(-Math.pow((xn - 0.08) / 0.22, 2)) * 1.2);
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
+      const drawRibbon = (mirror: 1 | -1) => {
+        const layers = mobile ? 22 : 34;
+        const stepX = mobile ? 3.2 : 2.25;
+
+        for (let l = 0; l < layers; l++) {
+          const offsetRatio = (l - (layers - 1) / 2) / ((layers - 1) / 2);
+          ctx.beginPath();
+
+          for (let x = 0; x <= w; x += stepX) {
+            const xn = x / w;
+            const y =
+              centerY +
+              mirror *
+                (baseWave(xn, l) * h * 0.22 + offsetRatio * layerSpread(xn) * (mobile ? 18 : 24));
+
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+
+          const grad = ctx.createLinearGradient(0, 0, w, 0);
+          const alpha = 0.16 + (1 - Math.abs(offsetRatio)) * 0.3;
+          grad.addColorStop(0, `rgba(80, 101, 103, ${alpha * 0.9})`);
+          grad.addColorStop(0.17, `rgba(66, 76, 79, ${alpha * 0.78})`);
+          grad.addColorStop(0.48, `rgba(110, 112, 116, ${alpha * 0.34})`);
+          grad.addColorStop(0.57, `rgba(219, 91, 205, ${alpha * 0.9})`);
+          grad.addColorStop(0.7, `rgba(78, 120, 247, ${alpha})`);
+          grad.addColorStop(0.86, `rgba(84, 228, 245, ${alpha * 0.95})`);
+          grad.addColorStop(1, `rgba(213, 131, 231, ${alpha * 0.86})`);
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = mirror === 1 ? 1.1 : 0.95;
+          ctx.stroke();
         }
-        // Color: hue based on x average (left magenta, right cyan). Use gradient stroke.
-        const grad = ctx.createLinearGradient(0, 0, w, 0);
-        const layerAlpha = 0.10 + (1 - Math.abs(l - layers / 2) / (layers / 2)) * 0.35;
-        grad.addColorStop(0.0, `rgba(200, 90, 255, ${layerAlpha * 0.9})`);
-        grad.addColorStop(0.25, `rgba(140, 120, 255, ${layerAlpha * 0.7})`);
-        grad.addColorStop(0.5, `rgba(120, 200, 255, ${layerAlpha * 0.85})`);
-        grad.addColorStop(1.0, `rgba(110, 230, 255, ${layerAlpha})`);
-        ctx.strokeStyle = grad;
-        ctx.stroke();
-      }
+      };
 
-      // Bright center highlight line
+      drawRibbon(1);
+      ctx.globalAlpha = 0.72;
+      drawRibbon(-1);
+      ctx.globalAlpha = 1;
+
+      ctx.save();
+      ctx.strokeStyle = "rgba(10, 16, 20, 0.68)";
+      ctx.lineWidth = 1.7;
       ctx.beginPath();
-      for (let x = 0; x <= w; x += stepX) {
+      for (let x = 0; x <= w * 0.48; x += 1.4) {
         const xn = x / w;
-        const y = waveY(xn, layers / 2);
+        const y = centerY + baseWave(xn, 0) * h * 0.18;
         if (x === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
-      ctx.strokeStyle = "rgba(220, 245, 255, 0.85)";
-      ctx.lineWidth = 1.1;
-      ctx.shadowColor = "rgba(140, 220, 255, 0.9)";
-      ctx.shadowBlur = 12;
       ctx.stroke();
-      ctx.shadowBlur = 0;
+      ctx.restore();
 
-      // Particles — drifting glowing dots, denser near the wave
-      for (const p of particles.current) {
-        // Slow drift
-        p.x += 0.0008;
-        if (p.x > 1.05) p.x = -0.05;
-        const px = p.x * w;
+      ctx.save();
+      ctx.strokeStyle = "rgba(255,255,255,0.46)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(w * 0.79, h * 0.23);
+      ctx.bezierCurveTo(w * 0.91, h * 0.3, w * 0.97, h * 0.1, w * 1.04, h * 0.2);
+      ctx.moveTo(w * 0.84, h * 0.57);
+      ctx.bezierCurveTo(w * 0.94, h * 0.5, w * 1.02, h * 0.4, w * 1.08, h * 0.46);
+      ctx.moveTo(w * 0.87, h * 0.78);
+      ctx.bezierCurveTo(w * 0.95, h * 0.9, w * 1.02, h * 0.82, w * 1.08, h * 0.92);
+      ctx.stroke();
+      ctx.restore();
 
-        // Pull y toward wave area with vertical spread
-        const baseY = waveY(p.x, 0);
-        const spread = h * 0.45;
-        const py = baseY + (p.y - 0.5) * spread;
+      const horizon = ctx.createLinearGradient(0, centerY - horizonThickness, w, centerY + horizonThickness);
+      horizon.addColorStop(0, "rgba(37, 42, 44, 0.86)");
+      horizon.addColorStop(0.22, "rgba(137, 190, 203, 0.92)");
+      horizon.addColorStop(0.56, "rgba(126, 237, 255, 0.98)");
+      horizon.addColorStop(0.8, "rgba(184, 107, 244, 0.92)");
+      horizon.addColorStop(1, "rgba(245, 219, 251, 0.8)");
+      ctx.fillStyle = horizon;
+      ctx.fillRect(0, centerY - horizonThickness / 2, w, horizonThickness);
 
-        const tw = 0.5 + 0.5 * Math.sin(t * 2 + p.twinkle);
-        const a = p.alpha * (0.4 + tw * 0.6);
-        // Hue: left side gets magenta bias
-        const localHue = Math.min(1, Math.max(0, p.x * 0.9 + p.hue * 0.2));
-        ctx.fillStyle = hueColor(localHue, a);
-        ctx.shadowColor = hueColor(localHue, a * 0.9);
-        ctx.shadowBlur = 8;
-        ctx.beginPath();
-        ctx.arc(px, py, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.shadowBlur = 0;
+      const bloom = ctx.createLinearGradient(0, 0, w, 0);
+      bloom.addColorStop(0, "rgba(255,255,255,0)");
+      bloom.addColorStop(0.52, "rgba(192, 244, 255, 0.75)");
+      bloom.addColorStop(0.7, "rgba(136, 220, 255, 0.95)");
+      bloom.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = bloom;
+      ctx.fillRect(0, centerY - 2, w, 4);
 
       animRef.current = requestAnimationFrame(draw);
     };
