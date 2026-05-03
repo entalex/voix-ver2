@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLandingData } from "@/context/LandingDataContext";
 import { useLanguage, t } from "@/context/LanguageContext";
-import heroAnimation from "@/assets/hero-animation.mp4";
+import NoiseToInsight from "./NoiseToInsight";
 
 const Hero = () => {
   const { hero } = useLandingData();
@@ -24,15 +24,13 @@ const Hero = () => {
           {lang === "ka" ? "AI-ით აღჭურვილი" : "Powered by AI"}
         </p>
 
-        <div className="mt-12 mx-auto max-w-3xl aspect-video rounded-2xl overflow-hidden relative">
-          <video
-            src={heroAnimation}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+        <div className="mt-12 mx-auto max-w-5xl aspect-[16/9] rounded-2xl overflow-hidden relative bg-white">
+          <NoiseToInsight />
+          <div className="absolute inset-0 flex items-start justify-center pt-10 md:pt-16 pointer-events-none">
+            <h2 className="text-2xl md:text-4xl font-bold text-primary tracking-tight">
+              {lang === "ka" ? "ხმაურიდან ინსაიტამდე" : "From Noise to Insight"}
+            </h2>
+          </div>
         </div>
       </div>
     </section>
