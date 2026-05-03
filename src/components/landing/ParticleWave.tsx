@@ -73,10 +73,8 @@ const ParticleWave = () => {
     };
 
     const draw = () => {
-      time.current += 0.006;
+      time.current += 0.008;
       const t = time.current;
-      // Horizontal drift speed — makes the whole pattern slide left→right
-      const drift = t * 0.05;
 
       // Background gradient
       const bg = ctx.createLinearGradient(0, 0, 0, h);
@@ -102,23 +100,21 @@ const ParticleWave = () => {
         const rightCrest = Math.exp(-Math.pow((xNorm - 0.85) / 0.18, 2));
         const calmCore = 0.18 * (1 - leftChaos - rightCrest * 0.6);
 
-        // Same shape as before — phases shift only via `drift`, so the whole
-        // pattern slides horizontally left→right without changing its look.
-        const xs = xNorm - drift;
-
+        // Envelopes stay anchored (shape doesn't move). Only sine phases
+        // advance over time → the wave looks alive but stays in place.
         const main =
-          Math.sin(xs * Math.PI * 2.2 + layer * 0.04) *
+          Math.sin(xNorm * Math.PI * 2.2 + t * 0.6 + layer * 0.04) *
           (calmCore + rightCrest * 0.55);
 
         const chaos =
-          (Math.sin(xs * 60 + layer * 0.6) * 0.5 +
-            Math.sin(xs * 95 + layer * 0.9) * 0.35 +
-            Math.sin(xs * 140 + layer * 0.3) * 0.25) *
+          (Math.sin(xNorm * 60 + t * 1.6 + layer * 0.6) * 0.5 +
+            Math.sin(xNorm * 95 - t * 1.2 + layer * 0.9) * 0.35 +
+            Math.sin(xNorm * 140 + t * 2.0 + layer * 0.3) * 0.25) *
           leftChaos *
           0.55;
 
         const ripple =
-          Math.sin(xs * 35 + layer * 0.5) * rightCrest * 0.18;
+          Math.sin(xNorm * 35 - t * 1.0 + layer * 0.5) * rightCrest * 0.18;
 
         return centerY + (main + chaos + ripple) * h;
       };
