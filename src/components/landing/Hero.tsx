@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLandingData } from "@/context/LandingDataContext";
 import { useLanguage, t } from "@/context/LanguageContext";
-import ParticleWave from "./ParticleWave";
+import heroAnimation from "@/assets/hero-animation.mp4";
 
 const Hero = () => {
   const { hero } = useLandingData();
@@ -25,7 +25,14 @@ const Hero = () => {
         </p>
 
         <div className="mt-12 mx-auto max-w-3xl aspect-video rounded-2xl overflow-hidden relative">
-          <ParticleWave />
+          <video
+            src={heroAnimation}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          />
         </div>
       </div>
     </section>
