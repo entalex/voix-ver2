@@ -1,28 +1,24 @@
 import { useRef, useEffect } from "react";
 
-const NAVY = "#41506C";
-const AMBER = "#F1A900";
-const DARK = "#2a3444";
-const LINE_COLOR = [120, 130, 145];
-const AMBER_RATIO = 0.28;
-const WAVE_SPEED = 0.007;
+// Color palette inspired by the reference: deep navy bg, glowing cyan core,
+// magenta accents on the chaotic left, bright cyan calm right.
+const BG_TOP = "#070b1a";
+const BG_BOTTOM = "#0d1530";
 
-interface Dot {
+interface Particle {
   x: number;
   y: number;
-  radius: number;
-  color: string;
-  bandOffset: number;
-  opacity: number;
-  phaseOffset: number;
+  r: number;
+  hue: number; // 0..1 -> magenta..cyan blend
+  alpha: number;
+  twinkle: number;
 }
 
 const ParticleWave = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const time = useRef(0);
-  const dots = useRef<Dot[]>([]);
-  const isMobile = useRef(false);
+  const particles = useRef<Particle[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -32,33 +28,23 @@ const ParticleWave = () => {
 
     let w = 0;
     let h = 0;
+    let mobile = false;
 
-    const buildDots = () => {
-      isMobile.current = w < 600;
-      const count = isMobile.current ? 375 : 600;
-      const arr: Dot[] = [];
+    const buildParticles = () => {
+      mobile = w < 600;
+      const count = mobile ? 140 : 240;
+      const arr: Particle[] = [];
       for (let i = 0; i < count; i++) {
-        const rand = Math.random();
-        let color: string;
-        if (rand < AMBER_RATIO) {
-          color = AMBER;
-        } else if (rand < AMBER_RATIO + 0.35) {
-          color = NAVY;
-        } else {
-          color = DARK;
-        }
-
         arr.push({
-          x: 0,
-          y: 0,
-          radius: isMobile.current ? 1.8 + Math.random() * 1.5 : 1.5 + Math.random() * 2.2,
-          color,
-          bandOffset: (Math.random() - 0.5) * 2,
-          opacity: 0.55 + Math.random() * 0.45,
-          phaseOffset: Math.random() * Math.PI * 2,
+          x: Math.random(),
+          y: Math.random(),
+          r: Math.random() * (mobile ? 1.4 : 1.8) + 0.3,
+          hue: Math.random(),
+          alpha: 0.2 + Math.random() * 0.8,
+          twinkle: Math.random() * Math.PI * 2,
         });
       }
-      dots.current = arr;
+      particles.current = arr;
     };
 
     const resize = () => {
@@ -71,77 +57,134 @@ const ParticleWave = () => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       w = rect.width;
       h = rect.height;
-      buildDots();
+      buildParticles();
     };
 
     resize();
     window.addEventListener("resize", resize);
 
+    // Color helpers — magenta at left to cyan at right
+    const hueColor = (hue: number, alpha: number) => {
+      // hue 0 -> magenta (#c84cff), hue 1 -> cyan (#5ef0ff)
+      const r = Math.round(200 - hue * 120);
+      const g = Math.round(80 + hue * 160);
+      const b = Math.round(255);
+      return `rgba(${r},${g},${b},${alpha})`;
+    };
+
     const draw = () => {
-      ctx.clearRect(0, 0, w, h);
-      time.current += WAVE_SPEED;
+      time.current += 0.012;
       const t = time.current;
+
+      // Background gradient
+      const bg = ctx.createLinearGradient(0, 0, 0, h);
+      bg.addColorStop(0, BG_TOP);
+      bg.addColorStop(1, BG_BOTTOM);
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
       const centerY = h * 0.5;
-      const pts = dots.current;
-      const mobile = isMobile.current;
-      const connDist = mobile ? 65 : 48;
-      const extendW = w + 80;
 
-      for (let i = 0; i < pts.length; i++) {
-        const p = pts[i];
-        // Distribute and scroll right
-        const rawX = (i / pts.length) * extendW + t * 80;
-        p.x = ((rawX % extendW) + extendW) % extendW - 40;
+      // Soft horizontal glow band along the wave's calm middle
+      const glow = ctx.createRadialGradient(w * 0.5, centerY, 0, w * 0.5, centerY, w * 0.55);
+      glow.addColorStop(0, "rgba(120, 200, 255, 0.18)");
+      glow.addColorStop(0.4, "rgba(80, 140, 255, 0.06)");
+      glow.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, w, h);
 
-        const nx = p.x / w;
+      // Wave function — chaotic left, calm middle, growing crest right
+      const waveY = (xNorm: number, layer: number) => {
+        // Envelope: chaotic amplitude on far left and right, low in middle
+        const leftChaos = Math.exp(-Math.pow((xNorm - 0.08) / 0.22, 2));
+        const rightCrest = Math.exp(-Math.pow((xNorm - 0.85) / 0.18, 2));
+        const calmCore = 0.18 * (1 - leftChaos - rightCrest * 0.6);
 
-        // Composite wave with varying frequencies for unique shape (lower freq = wider waves)
-        const wave1 = Math.sin(nx * Math.PI * 0.32 + t * 1.2) * 0.55;
-        const wave2 = Math.sin(nx * Math.PI * 0.2 + t * 0.9 + 1.0) * 0.35;
-        const wave3 = Math.sin(nx * Math.PI * 0.5 + t * 2.0 + 2.5) * 0.15;
-        const wave4 = Math.sin(nx * Math.PI * 0.11 + t * 0.5 + p.phaseOffset * 0.3) * 0.2;
-        const mainWave = wave1 + wave2 + wave3 + wave4;
+        // Smooth main wave (calm sine through middle, grows on right)
+        const main =
+          Math.sin(xNorm * Math.PI * 2.2 + t * 0.9 + layer * 0.04) *
+          (calmCore + rightCrest * 0.55);
 
-        // Edge fade
-        const edgeFade = Math.pow(Math.sin(Math.max(0, Math.min(1, nx)) * Math.PI), 0.15);
-        const amplitude = h * (mobile ? 0.28 : 0.32) * edgeFade;
+        // High-frequency chaos on the left
+        const chaos =
+          (Math.sin(xNorm * 60 + t * 2.4 + layer * 0.6) * 0.5 +
+            Math.sin(xNorm * 95 - t * 1.7 + layer * 0.9) * 0.35 +
+            Math.sin(xNorm * 140 + t * 3.1 + layer * 0.3) * 0.25) *
+          leftChaos *
+          0.55;
 
-        // Band thickness
-        const thickness = h * (mobile ? 0.04 : 0.055) + Math.abs(mainWave) * h * 0.03;
+        // Right-side fine ripples on the crest
+        const ripple =
+          Math.sin(xNorm * 35 - t * 1.4 + layer * 0.5) * rightCrest * 0.18;
 
-        p.y = centerY + mainWave * amplitude + p.bandOffset * thickness;
-      }
+        return centerY + (main + chaos + ripple) * h;
+      };
 
-      // Draw connections
-      ctx.lineWidth = 0.5;
-      for (let i = 0; i < pts.length; i++) {
-        for (let j = i + 1; j < pts.length; j++) {
-          const dx = pts[i].x - pts[j].x;
-          if (dx > connDist || dx < -connDist) continue;
-          const dy = pts[i].y - pts[j].y;
-          if (dy > connDist || dy < -connDist) continue;
-          const d2 = dx * dx + dy * dy;
-          if (d2 < connDist * connDist) {
-            const dist = Math.sqrt(d2);
-            const alpha = (1 - dist / connDist) * (mobile ? 0.016 : 0.16);
-            ctx.strokeStyle = `rgba(${LINE_COLOR[0]},${LINE_COLOR[1]},${LINE_COLOR[2]},${alpha})`;
-            ctx.beginPath();
-            ctx.moveTo(pts[i].x, pts[i].y);
-            ctx.lineTo(pts[j].x, pts[j].y);
-            ctx.stroke();
-          }
-        }
-      }
+      // Draw stacked thin lines forming a ribbon (the "many parallel curves" look)
+      const layers = mobile ? 28 : 44;
+      const stepX = mobile ? 4 : 2.5;
+      ctx.lineWidth = mobile ? 0.6 : 0.55;
 
-      // Draw dots
-      for (const p of pts) {
+      for (let l = 0; l < layers; l++) {
+        const layerOffset = (l - layers / 2) * (mobile ? 0.9 : 1.0);
+        // Color across the canvas: shift cyan->magenta by layer slightly for depth
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.opacity;
+        for (let x = 0; x <= w; x += stepX) {
+          const xn = x / w;
+          const y = waveY(xn, l) + layerOffset * (0.4 + Math.exp(-Math.pow((xn - 0.85) / 0.18, 2)) * 1.6 + Math.exp(-Math.pow((xn - 0.08) / 0.22, 2)) * 1.2);
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        // Color: hue based on x average (left magenta, right cyan). Use gradient stroke.
+        const grad = ctx.createLinearGradient(0, 0, w, 0);
+        const layerAlpha = 0.10 + (1 - Math.abs(l - layers / 2) / (layers / 2)) * 0.35;
+        grad.addColorStop(0.0, `rgba(200, 90, 255, ${layerAlpha * 0.9})`);
+        grad.addColorStop(0.25, `rgba(140, 120, 255, ${layerAlpha * 0.7})`);
+        grad.addColorStop(0.5, `rgba(120, 200, 255, ${layerAlpha * 0.85})`);
+        grad.addColorStop(1.0, `rgba(110, 230, 255, ${layerAlpha})`);
+        ctx.strokeStyle = grad;
+        ctx.stroke();
+      }
+
+      // Bright center highlight line
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += stepX) {
+        const xn = x / w;
+        const y = waveY(xn, layers / 2);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = "rgba(220, 245, 255, 0.85)";
+      ctx.lineWidth = 1.1;
+      ctx.shadowColor = "rgba(140, 220, 255, 0.9)";
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Particles — drifting glowing dots, denser near the wave
+      for (const p of particles.current) {
+        // Slow drift
+        p.x += 0.0008;
+        if (p.x > 1.05) p.x = -0.05;
+        const px = p.x * w;
+
+        // Pull y toward wave area with vertical spread
+        const baseY = waveY(p.x, 0);
+        const spread = h * 0.45;
+        const py = baseY + (p.y - 0.5) * spread;
+
+        const tw = 0.5 + 0.5 * Math.sin(t * 2 + p.twinkle);
+        const a = p.alpha * (0.4 + tw * 0.6);
+        // Hue: left side gets magenta bias
+        const localHue = Math.min(1, Math.max(0, p.x * 0.9 + p.hue * 0.2));
+        ctx.fillStyle = hueColor(localHue, a);
+        ctx.shadowColor = hueColor(localHue, a * 0.9);
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(px, py, p.r, 0, Math.PI * 2);
         ctx.fill();
       }
-      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
 
       animRef.current = requestAnimationFrame(draw);
     };
