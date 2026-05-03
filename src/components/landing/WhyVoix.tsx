@@ -26,12 +26,15 @@ const WhyVoix = () => {
           {whyVoix.cards.map((item, idx) => {
             const Icon = iconMap[item.iconName] || Zap;
             return (
-              <Card key={idx} className="bg-background border-0 shadow-md">
-                <CardContent className="pt-8 pb-8 flex flex-col items-center text-center">
-                  <div className="h-12 w-12 rounded-full bg-secondary/10 flex items-center justify-center mb-5">
-                    <Icon className="h-6 w-6 text-secondary" />
+              <Card
+                key={idx}
+                className="bg-white border-t-4 border-amber-400 rounded-xl shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-300"
+              >
+                <CardContent className="p-8 flex flex-col items-center text-center">
+                  <div className="h-12 w-12 rounded-full bg-amber-50 flex items-center justify-center mb-5">
+                    <Icon className="h-6 w-6 text-amber-500" />
                   </div>
-                  <h3 className="text-lg font-semibold text-primary">{t(item.title, lang)}</h3>
+                  <h3 className="text-xl font-bold text-primary">{t(item.title, lang)}</h3>
                   <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{t(item.description, lang)}</p>
                 </CardContent>
               </Card>
