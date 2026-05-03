@@ -110,18 +110,18 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="py-16 md:py-24 bg-muted/30">
-      <div className="max-w-[1200px] mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-4">
-          {t(contact.sectionTitle, lang) || (lang === "ka" ? "დაგვიკავშირდით" : "Contact Us")}
+    <section id="contact" className="py-16 md:py-24 bg-slate-50">
+      <div className="max-w-2xl mx-auto px-4 text-center">
+        <h2 className="text-3xl md:text-4xl font-bold text-primary mb-3">
+          {lang === "ka" ? "მოდი ვისაუბროთ" : "Let's Talk"}
         </h2>
-        {t(contact.sectionDescription, lang) && (
-          <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
-            {t(contact.sectionDescription, lang)}
-          </p>
-        )}
+        <p className="text-muted-foreground mb-10">
+          {lang === "ka"
+            ? "მოგვიყევით თქვენი გამოყენების შესახებ და ჩვენ პასუხს გაგცემთ 24 საათში."
+            : "Tell us about your use case and we'll get back within 24 hours."}
+        </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 bg-white rounded-2xl shadow-md p-8 md:p-12 max-w-2xl mx-auto text-left">
           <div className="absolute opacity-0 top-0 left-0 h-0 w-0 -z-10 overflow-hidden">
             <label htmlFor="website_url_check" className="hidden">Leave this empty</label>
             <input type="text" id="website_url_check" name="website_url_check" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} tabIndex={-1} aria-hidden="true" autoComplete="off" />
