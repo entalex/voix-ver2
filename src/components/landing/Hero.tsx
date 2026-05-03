@@ -20,6 +20,10 @@ const Hero = () => {
           {t(hero.buttonText, lang)}
         </Button>
 
+        <p className="mt-6 text-xs text-white/40 tracking-widest uppercase">
+          {lang === "ka" ? "AI-ით აღჭურვილი" : "Powered by AI"}
+        </p>
+
         <div className="mt-12 mx-auto max-w-3xl aspect-video rounded-2xl overflow-hidden relative">
           <ParticleWave />
         </div>

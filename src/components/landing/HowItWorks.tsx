@@ -7,7 +7,7 @@ const HowItWorks = () => {
   const { lang } = useLanguage();
 
   return (
-    <section id="how-it-works" className="py-16 md:py-24 bg-[#07101f]">
+    <section id="how-it-works" className="py-16 md:py-24 animate-fade-up bg-[#07101f]">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-white text-center">
           {t(hiwData.sectionTitle, lang)}
