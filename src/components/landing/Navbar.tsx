@@ -17,11 +17,13 @@ const navLinks = {
     { label: "Product", href: "#features" },
     { label: "Team", href: "#team" },
     { label: "Use Cases", href: "#use-cases" },
+    { label: "Contact", href: "#contact" },
   ],
   ka: [
     { label: "პროდუქტი", href: "#features" },
     { label: "გუნდი", href: "#team" },
     { label: "გამოყენება", href: "#use-cases" },
+    { label: "კონტაქტი", href: "#contact" },
   ],
 };
 
@@ -44,7 +46,7 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-b border-border">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <a href="#" className="text-2xl font-bold text-primary tracking-tight">
+        <a href="#" className="text-2xl font-black text-primary tracking-tight">
           VOIX
         </a>
 
@@ -66,7 +68,7 @@ const Navbar = () => {
             <Globe className="h-4 w-4" />
             {lang === "en" ? "Eng" : "ქარ"}
           </button>
-          <Button className="rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6">
+          <Button className="rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 ring-2 ring-amber-400 ring-offset-2">
             {lang === "ka" ? "დემოს მოთხოვნა" : "Request Demo"}
           </Button>
         </div>
@@ -80,8 +82,7 @@ const Navbar = () => {
           </SheetTrigger>
           <SheetContent
             side="right"
-            className="w-full max-w-[320px] p-0 border-l border-white/10 [&>button]:hidden"
-            style={{ backgroundColor: "hsl(216, 25%, 34%)" }}
+            className="w-full max-w-[320px] p-0 border-l border-white/10 bg-primary [&>button]:hidden"
           >
             <div className="flex flex-col h-full">
               {/* Header */}
