@@ -7,12 +7,12 @@ const HowItWorks = () => {
   const { lang } = useLanguage();
 
   return (
-    <section id="how-it-works" className="py-16 md:py-24 bg-muted/30">
+    <section id="how-it-works" className="py-16 md:py-24 bg-[#07101f]">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-primary text-center">
+        <h2 className="text-3xl md:text-4xl font-bold text-white text-center">
           {t(hiwData.sectionTitle, lang)}
         </h2>
-        <p className="mt-4 text-muted-foreground text-center max-w-2xl mx-auto">
+        <p className="mt-4 text-white/70 text-center max-w-2xl mx-auto">
           {t(hiwData.sectionSubtitle, lang)}
         </p>
 
@@ -24,9 +24,9 @@ const HowItWorks = () => {
                 <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center mb-4">
                   <span className="text-2xl font-bold text-secondary-foreground">{idx + 1}</span>
                 </div>
-                {Icon && <Icon className="h-8 w-8 text-primary mb-3" />}
-                <h3 className="text-xl font-semibold text-primary">{t(step.title, lang)}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{t(step.description, lang)}</p>
+                {Icon && <Icon className="h-8 w-8 text-white mb-3" />}
+                <h3 className="text-xl font-semibold text-white">{t(step.title, lang)}</h3>
+                <p className="mt-2 text-sm text-white/70">{t(step.description, lang)}</p>
               </div>
             );
           })}
