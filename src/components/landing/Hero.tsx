@@ -24,7 +24,7 @@ const Hero = () => {
           {lang === "ka" ? "AI-ით აღჭურვილი" : "Powered by AI"}
         </p>
 
-        <div className="mt-12 mx-auto max-w-5xl aspect-video rounded-2xl overflow-hidden relative bg-[#070b18]">
+        <div className="mt-12 mx-auto max-w-5xl aspect-video rounded-2xl overflow-hidden relative bg-[#05020c]">
           <ProceduralVoiceWave />
         </div>
       </div>
