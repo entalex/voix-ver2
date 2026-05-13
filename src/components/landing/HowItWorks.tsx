@@ -20,10 +20,17 @@ const Step = ({
   title: string;
   description: string;
 }) => {
-  const start = idx / total;
-  const end = (idx + 1) / total;
-  const opacity = useTransform(progress, [start, start + 0.05, end - 0.05, end], [0.25, 1, 1, 0.45]);
-  const scale = useTransform(progress, [start, start + 0.1], [0.92, 1]);
+  // Spread reveals across the first ~70% of scroll so the final step
+  // becomes fully active well before the section ends.
+  const span = 0.7 / total;
+  const start = idx * span;
+  const end = start + span;
+  const opacity = useTransform(
+    progress,
+    [Math.max(0, start - 0.02), start + span * 0.4, 1],
+    [0.35, 1, 1]
+  );
+  const scale = useTransform(progress, [Math.max(0, start - 0.02), end], [0.95, 1]);
   return (
     <motion.div style={{ opacity, scale }} className="flex flex-col items-center text-center">
       <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center mb-4 ring-4 ring-amber-200/60">
@@ -48,7 +55,7 @@ const HowItWorks = () => {
       id="how-it-works"
       ref={ref}
       className="bg-white"
-      style={{ height: `${100 + stepCount * 60}vh` }}
+      style={{ height: `${100 + stepCount * 20}vh` }}
     >
       <div className="sticky top-0 h-screen flex items-center">
         <div className="container mx-auto px-4">
