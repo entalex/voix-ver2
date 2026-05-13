@@ -1,8 +1,40 @@
 import { useLandingData } from "@/context/LandingDataContext";
 import { useLanguage, t } from "@/context/LanguageContext";
 import { howItWorks } from "@/data/landingData";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
 import { useRef } from "react";
+import type { LucideIcon } from "lucide-react";
+
+const Step = ({
+  idx,
+  total,
+  progress,
+  Icon,
+  title,
+  description,
+}: {
+  idx: number;
+  total: number;
+  progress: MotionValue<number>;
+  Icon?: LucideIcon;
+  title: string;
+  description: string;
+}) => {
+  const start = idx / total;
+  const end = (idx + 1) / total;
+  const opacity = useTransform(progress, [start, start + 0.05, end - 0.05, end], [0.25, 1, 1, 0.45]);
+  const scale = useTransform(progress, [start, start + 0.1], [0.92, 1]);
+  return (
+    <motion.div style={{ opacity, scale }} className="flex flex-col items-center text-center">
+      <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center mb-4 ring-4 ring-amber-200/60">
+        <span className="text-2xl font-bold text-secondary-foreground">{idx + 1}</span>
+      </div>
+      {Icon && <Icon className="h-8 w-8 text-primary mb-3" />}
+      <h3 className="text-xl font-semibold text-primary">{title}</h3>
+      <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+    </motion.div>
+  );
+};
 
 const HowItWorks = () => {
   const { howItWorks: hiwData } = useLandingData();
@@ -40,27 +72,17 @@ const HowItWorks = () => {
           </motion.p>
 
           <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {hiwData.steps.map((step, idx) => {
-              const Icon = howItWorks[idx]?.icon;
-              const start = idx / stepCount;
-              const end = (idx + 1) / stepCount;
-              const opacity = useTransform(scrollYProgress, [start, start + 0.05, end - 0.05, end], [0.25, 1, 1, 0.45]);
-              const scale = useTransform(scrollYProgress, [start, start + 0.1], [0.92, 1]);
-              return (
-                <motion.div
-                  key={idx}
-                  style={{ opacity, scale }}
-                  className="flex flex-col items-center text-center"
-                >
-                  <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center mb-4 ring-4 ring-amber-200/60">
-                    <span className="text-2xl font-bold text-secondary-foreground">{idx + 1}</span>
-                  </div>
-                  {Icon && <Icon className="h-8 w-8 text-primary mb-3" />}
-                  <h3 className="text-xl font-semibold text-primary">{t(step.title, lang)}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{t(step.description, lang)}</p>
-                </motion.div>
-              );
-            })}
+            {hiwData.steps.map((step, idx) => (
+              <Step
+                key={idx}
+                idx={idx}
+                total={stepCount}
+                progress={scrollYProgress}
+                Icon={howItWorks[idx]?.icon}
+                title={t(step.title, lang)}
+                description={t(step.description, lang)}
+              />
+            ))}
           </div>
         </div>
       </div>
