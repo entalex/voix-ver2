@@ -21,17 +21,25 @@ const ProceduralVoiceWave = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const resize = () => {
-      const rect = canvas.parentElement!.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
+      // Measure the canvas's own laid-out box (it's inset-0 w-full h-full),
+      // not the parent — the parent may be mid-transform (scale) and report
+      // a smaller rect, leaving a blank strip on the right.
+      const cw = canvas.clientWidth;
+      const ch = canvas.clientHeight;
+      if (!cw || !ch) return;
+      canvas.width = cw * dpr;
+      canvas.height = ch * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      w = rect.width;
-      h = rect.height;
+      w = cw;
+      h = ch;
     };
     resize();
     window.addEventListener("resize", resize);
+
+    // Re-measure whenever the canvas's box changes (covers parent transforms,
+    // layout shifts, container queries, etc.)
+    const ro = new ResizeObserver(() => resize());
+    ro.observe(canvas);
 
     let t = 0;
 
@@ -148,6 +156,7 @@ const ProceduralVoiceWave = () => {
     return () => {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", resize);
+      ro.disconnect();
     };
   }, []);
 
