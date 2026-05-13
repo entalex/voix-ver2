@@ -1,112 +1,63 @@
-
 # Goal
 
-Make the VOIX landing page feel alive on scroll — like Ringba — without changing the existing color palette. Each section should reveal, animate, and react to scroll position with parallax, pinned scenes, staggered fade-ins, sticky tab-switching, and floating decorative elements.
+Add Ringba-inspired animated backgrounds behind each major section (Features/Product, Team, Use Cases, Contact), but in a **light palette** (soft cream, pale amber, faint navy tints, subtle white) — no dark blue / red / green like Ringba. Each section gets its own distinct backdrop so scrolling feels like moving through different "scenes".
 
-# What Ringba actually does (so we copy the right things)
+# Visual concept (light version of Ringba)
 
-- **Pinned hero scene** — the orb + planets stay fixed while text/scroll progresses, with parallax depth on background grid.
-- **Reveal-on-scroll** — every block fades + slides in (staggered children, different directions per row).
-- **Sticky tab section** — one section "pins" while a tab list (AI / Insights / Compliance) auto-advances as you scroll, swapping the visual on the right.
-- **Floating particles** — dots/shines drift in the background, subtle parallax on mouse + scroll.
-- **Number/stat counters** — count up when scrolled into view.
-- **Sphere/feature cards** — each product card has its own animated illustration that scales up when entering viewport.
-- **Smooth global scroll** with momentum (Lenis-style easing).
+Ringba uses: dark void + glowing particle orb + grid floor + colored planets.
+Our light translation:
+- **Base canvas:** off-white / cream (`hsl(40 30% 98%)`) instead of black.
+- **Grid floor:** faint amber lines on cream, very low opacity, perspective-tilted.
+- **Particle orb:** soft navy dots on light bg (already exists as `ProceduralVoiceWave` in hero).
+- **Floating "planets":** soft pastel blurred circles (pale amber, pale navy, soft peach, mint-cream) drifting slowly.
+- **Section dividers:** gentle gradient fades between sections so backgrounds blend.
 
-# Implementation plan
+# Per-section backgrounds
 
-## 1. Install motion stack
+Each section gets a unique reusable `<SectionBackground variant="..." />` absolutely positioned behind content.
 
-- Add `framer-motion` (declarative reveals + variants) and `lenis` (smooth/momentum scroll). Both are lightweight and well-supported in React + Vite.
+1. **Features (Product)** — variant `grid-orb`
+   - Faint perspective grid + a small glowing dotted orb in the corner + 2 drifting pale circles.
+2. **Team** — variant `soft-blobs`
+   - 3–4 large blurred amber/cream blobs slowly morphing/drifting (CSS keyframes), no grid.
+3. **Use Cases** — variant `dotted-field`
+   - Subtle dot pattern (radial-gradient dots) + slow horizontal parallax + one pale glowing circle.
+4. **Contact** — variant `aurora`
+   - Soft cream→amber→white aurora gradient gently shifting (CSS conic-gradient animation) for a "calm" closing feel.
 
-## 2. Smooth scroll wrapper
+Hero already has the procedural wave, so we leave it. Keep `BackgroundOrbs` as the page-wide ambient layer.
 
-- Wrap `App.tsx` (or `pages/Index.tsx`) with a `SmoothScroll` provider that initializes Lenis on mount and drives `requestAnimationFrame`. Respect `prefers-reduced-motion` and disable on touch if it conflicts with native momentum.
+# Implementation
 
-## 3. Reusable reveal primitives
+## New file
+- `src/components/motion/SectionBackground.tsx`
+  - Props: `variant: "grid-orb" | "soft-blobs" | "dotted-field" | "aurora"`.
+  - Renders an absolutely-positioned, `pointer-events-none`, `-z-10` div with the right SVG/CSS layers.
+  - All animations are pure CSS (transform/opacity keyframes) — no scroll listeners, no heavy JS — so it stays smooth on mobile.
+  - Respects `prefers-reduced-motion` via `motion-reduce:` Tailwind variants (animations disabled).
 
-Create `src/components/motion/`:
-- `Reveal.tsx` — wraps children, uses `useInView` + `motion.div` to fade/slide on enter (configurable direction, delay, distance).
-- `StaggerGroup.tsx` + `StaggerItem.tsx` — for grids/lists (Features cards, How It Works steps, Use Cases, Team).
-- `Parallax.tsx` — wraps an element and translates Y based on scroll progress (`useScroll` + `useTransform`).
-- `CountUp.tsx` — animates a number from 0 to target when in view (used in Hero stat chips).
+## Edits
+- `src/components/landing/Features.tsx` — wrap section root with `relative overflow-hidden`, add `<SectionBackground variant="grid-orb" />`.
+- `src/components/landing/Team.tsx` — same with `soft-blobs`.
+- `src/components/landing/UseCases.tsx` — same with `dotted-field`.
+- `src/components/landing/Contact.tsx` — same with `aurora`.
+- `src/index.css` — add 4 keyframes (`drift-slow`, `blob-morph`, `aurora-shift`, `grid-pan`) used by the variants.
 
-Replace the current `animate-fade-up` CSS class on sections with these components for finer, scroll-tied control.
+## Color tokens (light palette only)
+All colors come from existing tokens or new HSL values added to `index.css`:
+- `--bg-cream: 40 30% 98%`
+- `--bg-amber-tint: 42 80% 92%`
+- `--bg-navy-tint: 220 25% 94%`
+- `--bg-peach-tint: 25 70% 94%`
 
-## 4. Hero — pinned cinematic intro
+No reds, no greens, no saturated blues — only soft tints of the existing brand (navy + amber) plus cream/peach.
 
-- Make the Hero ~150vh tall.
-- Pin the headline + animation canvas while user scrolls the first viewport.
-- Headline: words fade/blur-in one by one on mount.
-- "Powered by AI" chip + CTA button slide up with stagger.
-- `ProceduralVoiceWave` canvas: scale from 0.85 → 1 and add subtle Y parallax tied to scroll progress.
-- Add floating decorative dots (absolute-positioned divs) drifting with mouse parallax.
+# Out of scope
+- No changes to hero, navbar, footer, How It Works, Why VOIX, CTA banner.
+- No new dependencies.
+- No scroll-driven JS — backgrounds animate ambiently with CSS only, so the recent "slow scroll" issue does not return.
 
-## 5. How It Works — sticky step reveal
-
-- Convert the 3-step grid into a **sticky scene**: left column pins the section title; right column scrolls through the 3 steps, each step's icon scales up + number counter animates when active.
-- Active step gets a highlighted ring; previous steps dim.
-
-## 6. Features — alternating slide-in rows
-
-- Keep the existing zigzag layout but animate each row: image slides in from its side (left/right), text fades up with 0.15s stagger on title → description.
-- Add a subtle parallax: image translates Y opposite to scroll direction (~20px range).
-
-## 7. Use Cases — stagger grid + hover lift
-
-- On enter, cards stagger in (0.08s between cards) with scale 0.95 → 1.
-- On hover, card lifts + icon does a small bounce.
-
-## 8. Why VOIX — sticky tab switcher (the Ringba "AI / Insights / Compliance" pattern)
-
-- Pin the section for ~3 viewport heights.
-- Left side shows the active tab's headline + description; right side shows a swapping illustration.
-- Scroll progress (0–1) maps to tab index (0, 1, 2). Tabs are also clickable.
-- Animated underline slides between tabs.
-
-## 9. Team — masonry reveal
-
-- Cards reveal with a stagger pattern (diagonal wave).
-- Avatar images scale from 0.9 → 1 and add a soft glow on enter.
-
-## 10. CTA Banner — parallax background
-
-- Background gradient pans slowly on scroll.
-- Headline does a "split-text" reveal (each word fades/translates in sequence) when entering viewport.
-
-## 11. Floating background decorations
-
-- Add a global `BackgroundOrbs` component with 3–4 absolutely positioned blurred circles that drift with mouse + scroll parallax (very subtle, low opacity, behind content).
-
-## 12. Reduced motion
-
-- All motion components check `useReducedMotion()` from framer-motion and fall back to instant fade/no transform.
-
-# Files to add
-
-- `src/components/motion/SmoothScroll.tsx`
-- `src/components/motion/Reveal.tsx`
-- `src/components/motion/StaggerGroup.tsx`
-- `src/components/motion/Parallax.tsx`
-- `src/components/motion/CountUp.tsx`
-- `src/components/motion/BackgroundOrbs.tsx`
-
-# Files to edit
-
-- `src/App.tsx` — wrap with `SmoothScroll`
-- `src/pages/Index.tsx` — add `BackgroundOrbs`
-- `src/components/landing/Hero.tsx` — pinned scene + word-stagger headline + CountUp stats
-- `src/components/landing/HowItWorks.tsx` — sticky stepper
-- `src/components/landing/Features.tsx` — slide-in rows + image parallax
-- `src/components/landing/UseCases.tsx` — stagger grid
-- `src/components/landing/WhyVoix.tsx` — sticky tab switcher
-- `src/components/landing/Team.tsx` — diagonal stagger reveal
-- `src/components/landing/CTABanner.tsx` — parallax bg + split-text headline
-- `src/index.css` — remove the old `animate-fade-up` calls where superseded; add `prefers-reduced-motion` safeguards
-
-# Notes / trade-offs
-
-- Pinned sections add page height — total scroll length will roughly double. That's the intended Ringba feel.
-- Lenis + framer-motion together stay under ~30KB gzipped.
-- No color/brand changes; this is purely motion + layout pacing.
-- Mobile: pinned sections are kept but shortened (1× viewport instead of 2–3×) to avoid long forced scrolls.
+# Notes
+- Backgrounds sit behind content with `-z-10` and `pointer-events-none`, so card hover/click behavior is unaffected.
+- Each section keeps its current padding and content; only the visual backdrop changes.
+- Mobile: blurs are reduced (`md:blur-3xl` vs `blur-2xl`) and grid perspective hidden under `md:` breakpoint to keep performance.

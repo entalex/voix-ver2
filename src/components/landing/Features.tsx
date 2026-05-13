@@ -4,14 +4,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/context/LanguageContext";
 import { motion } from "framer-motion";
 import Reveal from "@/components/motion/Reveal";
+import SectionBackground from "@/components/motion/SectionBackground";
 
 const Features = () => {
   const { data: features = [], isLoading } = useProductFeatures();
   const { lang } = useLanguage();
 
   return (
-    <section id="features" className="py-16 md:py-24 bg-white">
-      <div className="max-w-[1200px] mx-auto px-4">
+    <section id="features" className="relative overflow-hidden py-16 md:py-24 bg-[hsl(40_40%_99%)]">
+      <SectionBackground variant="grid-orb" />
+      <div className="max-w-[1200px] mx-auto px-4 relative">
         <Reveal>
           <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12">
             {lang === "ka" ? "პროდუქტის ფუნქციები" : "Product Features"}
