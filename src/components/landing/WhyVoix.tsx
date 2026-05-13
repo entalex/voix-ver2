@@ -29,12 +29,12 @@ const WhyVoix = () => {
           </p>
         </Reveal>
 
-        <StaggerGroup className="grid grid-cols-1 md:grid-cols-3 gap-6" stagger={0.12}>
+        <StaggerGroup className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch" stagger={0.12}>
           {whyVoix.cards.map((item, idx) => {
             const Icon = iconMap[item.iconName] || Zap;
             return (
-              <StaggerItem key={idx}>
-                <motion.div whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+              <StaggerItem key={idx} className="h-full">
+                <motion.div whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} className="h-full">
                   <Card className="bg-white border-t-4 border-amber-400 rounded-xl shadow-sm hover:shadow-lg transition-shadow h-full">
                     <CardContent className="p-8 flex flex-col items-center text-center">
                       <div className="h-12 w-12 rounded-full bg-amber-50 flex items-center justify-center mb-5">
