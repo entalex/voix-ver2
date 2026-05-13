@@ -8,10 +8,12 @@ import Team from "@/components/landing/Team";
 import Contact from "@/components/landing/Contact";
 import CTABanner from "@/components/landing/CTABanner";
 import Footer from "@/components/landing/Footer";
+import BackgroundOrbs from "@/components/motion/BackgroundOrbs";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      <BackgroundOrbs />
       <Navbar />
       <main>
         <Hero />
