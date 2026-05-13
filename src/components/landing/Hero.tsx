@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLandingData } from "@/context/LandingDataContext";
 import { useLanguage, t } from "@/context/LanguageContext";
-import heroVideo from "@/assets/hero-noise-to-insight.mp4";
+import ProceduralVoiceWave from "./ProceduralVoiceWave";
 
 const Hero = () => {
   const { hero } = useLandingData();
@@ -24,15 +24,8 @@ const Hero = () => {
           {lang === "ka" ? "AI-ით აღჭურვილი" : "Powered by AI"}
         </p>
 
-        <div className="mt-12 mx-auto max-w-5xl aspect-video rounded-2xl overflow-hidden relative bg-white">
-          <video
-            src={heroVideo}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+        <div className="mt-12 mx-auto max-w-5xl aspect-video rounded-2xl overflow-hidden relative bg-[#070b18]">
+          <ProceduralVoiceWave />
         </div>
       </div>
     </section>
