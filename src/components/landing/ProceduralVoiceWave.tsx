@@ -1,9 +1,10 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Particle voice-wave animation inspired by Lalit / theosm "Magic Audio AI"
- * Dribbble shot. Thousands of small magenta/violet particles flowing in
- * curl-noise-like wave fields on a deep black background.
+ * Procedural voice-wave animation inspired by Milkinside's
+ * "Procedural Voice wave" shot. A horizontal flowing ribbon made of
+ * many stacked sine layers with shifting color gradient, sitting on
+ * a soft glow horizon line.
  */
 const ProceduralVoiceWave = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -15,23 +16,9 @@ const ProceduralVoiceWave = () => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     let w = 0;
     let h = 0;
-
-    type P = {
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      life: number;
-      maxLife: number;
-      size: number;
-      hue: number; // 0..1 → magenta..violet
-    };
-
-    let particles: P[] = [];
-    let target = 0;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const resize = () => {
       const rect = canvas.parentElement!.getBoundingClientRect();
@@ -42,108 +29,120 @@ const ProceduralVoiceWave = () => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       w = rect.width;
       h = rect.height;
-      target = Math.floor((w * h) / 900); // density
     };
     resize();
     window.addEventListener("resize", resize);
 
     let t = 0;
 
-    // Curl-noise-ish flow field via summed sines
-    const flow = (x: number, y: number, time: number) => {
-      const nx = x * 0.0042;
-      const ny = y * 0.0075;
-      const a =
-        Math.sin(nx * 1.7 + time * 0.6) +
-        Math.cos(ny * 2.1 - time * 0.45) * 0.8 +
-        Math.sin((nx + ny) * 1.3 + time * 0.3) * 0.5;
-      const b =
-        Math.cos(nx * 2.3 - time * 0.5) +
-        Math.sin(ny * 1.6 + time * 0.7) * 0.8 +
-        Math.cos((nx - ny) * 1.4 + time * 0.4) * 0.5;
-      const angle = a * Math.PI + b * 0.6;
-      return angle;
-    };
-
-    const spawn = (): P => {
-      // Bias spawn toward the central horizontal band
-      const cy = h * 0.5;
-      const spread = h * 0.32;
-      const y = cy + (Math.random() - 0.5) * 2 * spread * Math.pow(Math.random(), 0.6);
-      const x = Math.random() * w;
-      return {
-        x,
-        y,
-        vx: 0,
-        vy: 0,
-        life: 0,
-        maxLife: 120 + Math.random() * 220,
-        size: Math.random() < 0.85 ? 0.7 + Math.random() * 0.9 : 1.6 + Math.random() * 1.2,
-        hue: Math.random(),
-      };
-    };
+    // Smooth pseudo-noise via summed sines
+    const noise = (x: number, time: number, seed: number) =>
+      Math.sin(x * 1.8 + time * 0.9 + seed) * 0.55 +
+      Math.sin(x * 3.7 - time * 0.6 + seed * 1.3) * 0.3 +
+      Math.sin(x * 7.3 + time * 1.4 + seed * 0.7) * 0.15;
 
     const draw = () => {
-      t += 0.006;
+      t += 0.012;
 
-      // Trailing fade for soft motion blur
-      ctx.fillStyle = "rgba(5, 2, 12, 0.22)";
+      // Background — deep gradient
+      const bg = ctx.createLinearGradient(0, 0, w, h);
+      bg.addColorStop(0, "#070b18");
+      bg.addColorStop(0.5, "#0b1226");
+      bg.addColorStop(1, "#120a26");
+      ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
 
-      // Spawn up to target
-      while (particles.length < target) particles.push(spawn());
+      // Soft radial glow centered
+      const glow = ctx.createRadialGradient(
+        w * 0.5,
+        h * 0.5,
+        0,
+        w * 0.5,
+        h * 0.5,
+        Math.max(w, h) * 0.6
+      );
+      glow.addColorStop(0, "rgba(99, 102, 241, 0.18)");
+      glow.addColorStop(0.45, "rgba(56, 189, 248, 0.07)");
+      glow.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, w, h);
+
+      const cy = h * 0.5;
+      const layers = 70;
+
+      // Envelope: fat in middle, tapering at ends
+      const envelope = (xn: number) => {
+        const e = Math.sin(xn * Math.PI); // 0..1..0
+        return Math.pow(e, 1.4);
+      };
 
       ctx.globalCompositeOperation = "lighter";
 
-      const cy = h * 0.5;
+      for (let l = 0; l < layers; l++) {
+        const lt = l / (layers - 1); // 0..1
+        const offset = (lt - 0.5) * 2; // -1..1
 
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-
-        const angle = flow(p.x, p.y - cy, t);
-        const speed = 1.05 + Math.sin(t * 0.4 + p.hue * 6.28) * 0.25;
-        p.vx = p.vx * 0.92 + Math.cos(angle) * speed * 0.55;
-        p.vy = p.vy * 0.92 + Math.sin(angle) * speed * 0.4;
-
-        // Gentle vertical pull toward the band center
-        p.vy += ((cy - p.y) / h) * 0.08;
-
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life++;
-
-        const lifeRatio = p.life / p.maxLife;
-        const fade = Math.sin(lifeRatio * Math.PI); // 0..1..0
-
-        // Color: magenta → violet → pink
-        const r = 220 + Math.floor(p.hue * 35);
-        const g = 30 + Math.floor((1 - p.hue) * 40);
-        const b = 180 + Math.floor(p.hue * 60);
-        const alpha = fade * (0.55 + Math.random() * 0.25);
-
-        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
+        const step = 2;
+        for (let x = 0; x <= w; x += step) {
+          const xn = x / w;
+          const env = envelope(xn);
 
-        if (
-          p.life >= p.maxLife ||
-          p.x < -20 ||
-          p.x > w + 20 ||
-          p.y < -40 ||
-          p.y > h + 40
-        ) {
-          particles[i] = spawn();
+          // Per-layer phase shift gives the ribbon thickness
+          const n = noise(xn * 4 + offset * 0.4, t + lt * 0.6, lt * 6.2);
+
+          // Vertical displacement: shared base wave + per-layer spread
+          const base = Math.sin(xn * 6.2 - t * 1.6 + offset * 0.8) * 0.6;
+          const amp = h * 0.34 * env;
+
+          const y = cy + (base + n * 0.7) * amp + offset * env * h * 0.18;
+
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
         }
+
+        // Horizontal color gradient — magenta → violet → cyan
+        const grad = ctx.createLinearGradient(0, 0, w, 0);
+        const a = 0.05 + (1 - Math.abs(offset)) * 0.18;
+        grad.addColorStop(0, `rgba(236, 72, 153, ${a * 0.85})`); // pink
+        grad.addColorStop(0.35, `rgba(168, 85, 247, ${a})`); // violet
+        grad.addColorStop(0.65, `rgba(99, 102, 241, ${a})`); // indigo
+        grad.addColorStop(1, `rgba(34, 211, 238, ${a * 0.95})`); // cyan
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 0.9;
+        ctx.stroke();
       }
 
       ctx.globalCompositeOperation = "source-over";
+
+      // Bright center horizon line (the "voice" core)
+      const horizon = ctx.createLinearGradient(0, 0, w, 0);
+      horizon.addColorStop(0, "rgba(236, 72, 153, 0)");
+      horizon.addColorStop(0.2, "rgba(236, 72, 153, 0.7)");
+      horizon.addColorStop(0.5, "rgba(255, 255, 255, 0.95)");
+      horizon.addColorStop(0.8, "rgba(34, 211, 238, 0.7)");
+      horizon.addColorStop(1, "rgba(34, 211, 238, 0)");
+
+      ctx.beginPath();
+      const step2 = 2;
+      for (let x = 0; x <= w; x += step2) {
+        const xn = x / w;
+        const env = envelope(xn);
+        const base = Math.sin(xn * 6.2 - t * 1.6) * 0.6;
+        const n = noise(xn * 4, t, 0) * 0.4;
+        const y = cy + (base + n) * h * 0.18 * env;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = horizon;
+      ctx.lineWidth = 1.6;
+      ctx.shadowColor = "rgba(165, 180, 252, 0.9)";
+      ctx.shadowBlur = 18;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
       rafRef.current = requestAnimationFrame(draw);
     };
-
-    // Initial black wash
-    ctx.fillStyle = "#05020c";
-    ctx.fillRect(0, 0, w, h);
 
     rafRef.current = requestAnimationFrame(draw);
     return () => {
