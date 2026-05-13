@@ -9,9 +9,9 @@ const UseCases = () => {
   const { lang } = useLanguage();
 
   return (
-    <section id="use-cases" className="py-16 md:py-24 animate-fade-up bg-[#07101f]">
+    <section id="use-cases" className="py-16 md:py-24 animate-fade-up bg-muted/30">
       <div className="max-w-[1200px] mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">
+        <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12">
           {lang === "ka" ? "გამოყენების სფეროები" : "Use Cases"}
         </h2>
 
@@ -21,15 +21,15 @@ const UseCases = () => {
             return (
               <div
                 key={idx}
-                className="rounded-xl bg-white/5 p-8 md:p-10 transition-shadow border border-white/10 shadow-sm"
+                className="rounded-xl bg-white p-8 md:p-10 transition-shadow border border-border shadow-sm"
               >
                 <div className="mb-4">
-                  <Icon className="h-8 w-8 text-amber-400" />
+                  <Icon className="h-8 w-8 text-amber-500" />
                 </div>
-                <h3 className="text-lg font-semibold mb-3 text-white">
+                <h3 className="text-lg font-semibold mb-3 text-primary">
                   {t(uc.title, lang)}
                 </h3>
-                <p className="text-sm leading-relaxed text-white/60">
+                <p className="text-sm leading-relaxed text-muted-foreground">
                   {t(uc.description, lang)}
                 </p>
               </div>
