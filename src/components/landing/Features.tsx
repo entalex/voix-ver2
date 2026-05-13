@@ -2,17 +2,21 @@ import { Mic } from "lucide-react";
 import { useProductFeatures } from "@/hooks/useProductFeatures";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/context/LanguageContext";
+import { motion } from "framer-motion";
+import Reveal from "@/components/motion/Reveal";
 
 const Features = () => {
   const { data: features = [], isLoading } = useProductFeatures();
   const { lang } = useLanguage();
 
   return (
-    <section id="features" className="py-16 md:py-24 animate-fade-up bg-white">
+    <section id="features" className="py-16 md:py-24 bg-white">
       <div className="max-w-[1200px] mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12">
-          {lang === "ka" ? "პროდუქტის ფუნქციები" : "Product Features"}
-        </h2>
+        <Reveal>
+          <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12">
+            {lang === "ka" ? "პროდუქტის ფუნქციები" : "Product Features"}
+          </h2>
+        </Reveal>
 
         {isLoading ? (
           <div className="flex flex-col gap-12 md:gap-16">
@@ -37,7 +41,13 @@ const Features = () => {
                   className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center"
                 >
                   {/* Image */}
-                  <div className={`${isEven ? "md:order-1" : "md:order-2"} w-full`}>
+                  <motion.div
+                    initial={{ opacity: 0, x: isEven ? -60 : 60 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                    className={`${isEven ? "md:order-1" : "md:order-2"} w-full`}
+                  >
                     {feature.image_url ? (
                       <img
                         src={feature.image_url}
@@ -52,17 +62,23 @@ const Features = () => {
                         </div>
                       </div>
                     )}
-                  </div>
+                  </motion.div>
 
                   {/* Text */}
-                  <div className={`flex flex-col justify-center ${isEven ? "md:order-2" : "md:order-1"}`}>
+                  <motion.div
+                    initial={{ opacity: 0, x: isEven ? 60 : -60 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                    className={`flex flex-col justify-center ${isEven ? "md:order-2" : "md:order-1"}`}
+                  >
                     <h3 className="text-xl md:text-2xl font-bold text-primary">
                       {lang === "ka" && feature.title_ka ? feature.title_ka : feature.title}
                     </h3>
                     <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
                       {lang === "ka" && feature.description_ka ? feature.description_ka : feature.description}
                     </p>
-                  </div>
+                  </motion.div>
                 </div>
               );
             })}

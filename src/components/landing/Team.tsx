@@ -1,4 +1,7 @@
 import { useLanguage } from "@/context/LanguageContext";
+import Reveal from "@/components/motion/Reveal";
+import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
+import { motion } from "framer-motion";
 
 const Team = () => {
   const { lang } = useLanguage();
@@ -15,23 +18,29 @@ const Team = () => {
       : ["🇬🇪 Based in Tbilisi", "AI-First", "Enterprise Ready"];
 
   return (
-    <section id="team" className="py-16 md:py-24 animate-fade-up bg-slate-50">
+    <section id="team" className="py-16 md:py-24 bg-slate-50">
       <div className="max-w-3xl mx-auto px-4 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-primary">{heading}</h2>
-        <p className="mt-4 text-muted-foreground text-base md:text-lg leading-relaxed">
-          {description}
-        </p>
+        <Reveal>
+          <h2 className="text-3xl md:text-4xl font-bold text-primary">{heading}</h2>
+        </Reveal>
+        <Reveal delay={0.1}>
+          <p className="mt-4 text-muted-foreground text-base md:text-lg leading-relaxed">
+            {description}
+          </p>
+        </Reveal>
 
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <StaggerGroup className="mt-8 flex flex-wrap items-center justify-center gap-3" stagger={0.1} delay={0.2}>
           {badges.map((badge) => (
-            <span
-              key={badge}
-              className="rounded-full bg-amber-100 text-amber-800 px-5 py-2 text-sm font-medium"
-            >
-              {badge}
-            </span>
+            <StaggerItem key={badge}>
+              <motion.span
+                whileHover={{ scale: 1.06 }}
+                className="inline-block rounded-full bg-amber-100 text-amber-800 px-5 py-2 text-sm font-medium"
+              >
+                {badge}
+              </motion.span>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGroup>
       </div>
     </section>
   );
