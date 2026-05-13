@@ -1,13 +1,10 @@
-import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 const BackgroundOrbs = () => {
-  const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll();
   const y1 = useTransform(scrollYProgress, [0, 1], [0, -200]);
   const y2 = useTransform(scrollYProgress, [0, 1], [0, 300]);
   const y3 = useTransform(scrollYProgress, [0, 1], [0, -120]);
-
-  if (reduce) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
