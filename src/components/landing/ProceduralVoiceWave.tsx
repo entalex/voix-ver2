@@ -46,9 +46,9 @@ const ProceduralVoiceWave = () => {
 
       // Background — deep gradient
       const bg = ctx.createLinearGradient(0, 0, w, h);
-      bg.addColorStop(0, "#070b18");
-      bg.addColorStop(0.5, "#0b1226");
-      bg.addColorStop(1, "#120a26");
+      bg.addColorStop(0, "#f1f5f9");
+      bg.addColorStop(0.5, "#e2e8f0");
+      bg.addColorStop(1, "#ede9fe");
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
 

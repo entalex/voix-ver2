@@ -20,11 +20,11 @@ const Hero = () => {
           {t(hero.buttonText, lang)}
         </Button>
 
-        <p className="mt-6 text-xs text-white/40 tracking-widest uppercase">
+        <p className="mt-6 text-xs text-muted-foreground tracking-widest uppercase">
           {lang === "ka" ? "AI-ით აღჭურვილი" : "Powered by AI"}
         </p>
 
-        <div className="mt-12 mx-auto max-w-5xl aspect-video rounded-2xl overflow-hidden relative bg-[#070b18]">
+        <div className="mt-12 mx-auto max-w-5xl aspect-video rounded-2xl overflow-hidden relative bg-muted">
           <ProceduralVoiceWave />
         </div>
       </div>
