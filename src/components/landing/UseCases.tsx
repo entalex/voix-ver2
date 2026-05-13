@@ -4,6 +4,7 @@ import { Store, HeartPulse, GraduationCap, Building2 } from "lucide-react";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 import Reveal from "@/components/motion/Reveal";
 import { motion } from "framer-motion";
+import SectionBackground from "@/components/motion/SectionBackground";
 
 const icons = [Store, HeartPulse, GraduationCap, Building2];
 
@@ -12,8 +13,9 @@ const UseCases = () => {
   const { lang } = useLanguage();
 
   return (
-    <section id="use-cases" className="py-16 md:py-24 bg-muted/30">
-      <div className="max-w-[1200px] mx-auto px-4">
+    <section id="use-cases" className="relative overflow-hidden py-16 md:py-24 bg-[hsl(220_30%_98%)]">
+      <SectionBackground variant="dotted-field" />
+      <div className="max-w-[1200px] mx-auto px-4 relative">
         <Reveal>
           <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12">
             {lang === "ka" ? "გამოყენების სფეროები" : "Use Cases"}

@@ -7,6 +7,7 @@ import { useLandingData } from "@/context/LandingDataContext";
 import { useLanguage, t } from "@/context/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import SectionBackground from "@/components/motion/SectionBackground";
 
 const TURNSTILE_SITE_KEY = "";
 
@@ -110,8 +111,9 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="py-16 md:py-24 animate-fade-up bg-slate-50">
-      <div className="max-w-2xl mx-auto px-4 text-center">
+    <section id="contact" className="relative overflow-hidden py-16 md:py-24 animate-fade-up bg-[hsl(40_50%_98%)]">
+      <SectionBackground variant="aurora" />
+      <div className="max-w-2xl mx-auto px-4 text-center relative">
         <h2 className="text-3xl md:text-4xl font-bold text-primary mb-3">
           {lang === "ka" ? "მოდი ვისაუბროთ" : "Let's Talk"}
         </h2>

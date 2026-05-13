@@ -2,6 +2,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import Reveal from "@/components/motion/Reveal";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 import { motion } from "framer-motion";
+import SectionBackground from "@/components/motion/SectionBackground";
 
 const Team = () => {
   const { lang } = useLanguage();
@@ -18,8 +19,9 @@ const Team = () => {
       : ["🇬🇪 Based in Tbilisi", "AI-First", "Enterprise Ready"];
 
   return (
-    <section id="team" className="py-16 md:py-24 bg-slate-50">
-      <div className="max-w-3xl mx-auto px-4 text-center">
+    <section id="team" className="relative overflow-hidden py-16 md:py-24 bg-[hsl(40_50%_98%)]">
+      <SectionBackground variant="soft-blobs" />
+      <div className="max-w-3xl mx-auto px-4 text-center relative">
         <Reveal>
           <h2 className="text-3xl md:text-4xl font-bold text-primary">{heading}</h2>
         </Reveal>
